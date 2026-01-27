@@ -1,0 +1,12 @@
+# ninja log v5
+61	525	7912275365093505	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	7eacf23229bfa4fe
+527	852	7912275368153567	C:/Users/courc/JAJA/JAJAPartyGame/JAJA/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/3z3sw435/obj/arm64-v8a/libswappywrapper.so	6a812ab962ac2a02
+34	1528	7912275375055790	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	260cec35fef86151
+20	1537	7912275375090976	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	4c16b4fa0cb889fa
+7	1554	7912275375367842	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	258d409b5dbb459a
+42	1576	7912275375626114	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	987e8891658f8bdc
+0	1620	7912275376081374	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	84a8a412ef0eb15e
+51	1771	7912275377609471	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	e315669c0d99fa17
+26	1802	7912275377923484	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	5073b226de9a7c0c
+13	1880	7912275378701960	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	4de485b1c076b607
+1881	1965	7912275379598340	C:/Users/courc/JAJA/JAJAPartyGame/JAJA/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/3z3sw435/obj/arm64-v8a/libgame.so	aa4f99ee3c986a21

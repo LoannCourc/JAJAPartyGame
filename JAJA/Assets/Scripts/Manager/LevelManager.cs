@@ -10,43 +10,50 @@ public class LevelManager : MonoBehaviour
     public GameObject filterMenu; // L'objet parent de ton écran de filtres
     public GameObject gamePanel; // L'objet parent de ton écran de jeu
 
-    public void PrepareGame()
+   public void PrepareGame()
+{
+    string selectedGame = GameManager.Instance.selectedGameMode;
+    // On récupère le choix de l'utilisateur (ex: "easy", "hot"...)
+    string targetDiff = GameManager.Instance.selectedDifficulty.ToLower().Trim();
+    int targetCount = GameManager.Instance.questionCount;
+
+    if (GoogleSheetLoader.Instance.gameDatabase.ContainsKey(selectedGame))
     {
-        // 1. Récupérer les paramètres du GameManager
-        string selectedGame = GameManager.Instance.selectedGameMode;
-        string selectedDiff = GameManager.Instance.selectedDifficulty;
-        int targetCount = GameManager.Instance.questionCount;
+        List<QuestionData> allQuestions = GoogleSheetLoader.Instance.gameDatabase[selectedGame];
+        List<QuestionData> filteredList = new List<QuestionData>();
 
-        // 2. Récupérer toutes les questions de l'onglet correspondant
-        if (GoogleSheetLoader.Instance.gameDatabase.ContainsKey(selectedGame))
+        // LOGIQUE DE FILTRAGE
+        if (targetDiff == "aléatoire" || string.IsNullOrEmpty(targetDiff))
         {
-            List<QuestionData> allQuestions = GoogleSheetLoader.Instance.gameDatabase[selectedGame];
-
-            // 3. Filtrage par difficulté (sauf si "Aléatoire")
-            List<QuestionData> filteredList = new List<QuestionData>();
-            if (selectedDiff.ToLower() == "aléatoire") {
-                filteredList = new List<QuestionData>(allQuestions);
-            } else {
-                filteredList = allQuestions.Where(q => q.difficulty.ToLower() == selectedDiff.ToLower()).ToList();
-            }
-
-            // 4. Mélange de la liste (Shuffle)
-            Shuffle(filteredList);
-
-            // 5. Sélection du nombre final de questions
-            int finalAmount = Mathf.Min(targetCount, filteredList.Count);
-            gameSessionDeck = filteredList.GetRange(0, finalAmount);
-
-            Debug.Log($"Partie lancée ! {gameSessionDeck.Count} questions prêtes pour le jeu : {selectedGame}");
-            
-            filterMenu.SetActive(false);
-            gamePanel.SetActive(true);
-            GameplayManager.Instance.StartGameSession(gameSessionDeck);
-            // 6. Ici : Charger ta scène de jeu réelle (Visualisation des cartes)
-            // SceneManager.LoadScene("GamePlay");
+            filteredList = new List<QuestionData>(allQuestions);
         }
-    }
+        else
+        {
+            // On cherche les questions dont la difficulté correspond exactement
+            filteredList = allQuestions.FindAll(q => q.difficulty.ToLower().Trim() == targetDiff);
+        }
 
+        // Sécurité : si aucune question ne correspond à la difficulté (ex: pas de "hot" dans ce jeu)
+        if (filteredList.Count == 0)
+        {
+            Debug.LogWarning("Aucune question trouvée pour cette difficulté, on prend tout !");
+            filteredList = new List<QuestionData>(allQuestions);
+        }
+
+        // Mélange
+        Shuffle(filteredList);
+
+        // Limitation au nombre choisi par le Slider
+        int finalAmount = Mathf.Min(targetCount, filteredList.Count);
+        gameSessionDeck = filteredList.GetRange(0, finalAmount);
+
+        // Lancement
+        GameplayManager.Instance.StartGameSession(gameSessionDeck);
+
+         gamePanel.SetActive(true);
+        filterMenu.SetActive(false);
+    }
+}
     private void Shuffle(List<QuestionData> list)
     {
         for (int i = 0; i < list.Count; i++)
