@@ -69,8 +69,8 @@ MonoBehaviour:
     y: 0
     width: 568
     height: 1284
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 276, y: 76}
+  m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 15}
   m_Panes:
   - {fileID: 15}
@@ -633,7 +633,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/2D/Lobby
+    - Assets/2D/GameChoice
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -643,7 +643,7 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets/2D/Lobby
+  - Assets/2D/GameChoice
   m_LastFoldersGridSize: 16
   m_LastProjectPath: C:\Users\courc\JAJA\JAJAPartyGame\JAJA
   m_LockTracker:
@@ -652,13 +652,13 @@ MonoBehaviour:
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs:
-    - m_Data: 50746
+    - m_Data: 50726
     m_LastClickedID:
-      m_Data: 50746
+      m_Data: 50726
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 50346
-    - m_Data: 50742
+    - m_Data: 50622
+    - m_Data: 50624
     - m_Data: 1000000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -692,7 +692,8 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 50346
+    - m_Data: 50622
+    - m_Data: 50624
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -719,8 +720,9 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: []
-    m_LastClickedInstanceID: 0
+    m_SelectedInstanceIDs:
+    - m_Data: 49830
+    m_LastClickedInstanceID: 49830
     m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs:
     - m_Data: 50788
@@ -846,29 +848,18 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: []
+      m_SelectedIDs:
+      - m_Data: 49830
       m_LastClickedID:
-        m_Data: 0
+        m_Data: 49830
       m_ExpandedIDs:
-      - m_Data: -29728
-      - m_Data: -29718
-      - m_Data: -29700
-      - m_Data: -29696
+      - m_Data: -3194
       - m_Data: -1318
-      - m_Data: 48960
-      - m_Data: 49068
-      - m_Data: 49180
-      - m_Data: 49358
-      - m_Data: 49406
-      - m_Data: 49532
-      - m_Data: 49544
-      - m_Data: 49612
-      - m_Data: 49620
-      - m_Data: 49656
-      - m_Data: 49720
-      - m_Data: 49726
-      - m_Data: 49774
-      - m_Data: 50000
+      - m_Data: 48990
+      - m_Data: 49426
+      - m_Data: 49830
+      - m_Data: 49992
+      - m_Data: 50050
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -1489,9 +1480,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 673.04236, y: 1116.8573, z: -7.8887224}
+    m_Target: {x: 602.18396, y: 853.71326, z: -7.2280498}
     speed: 2
-    m_Value: {x: 673.04236, y: 1116.8573, z: -7.8887224}
+    m_Value: {x: 602.18396, y: 853.71326, z: -7.2280498}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1541,9 +1532,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 817.5513
+    m_Target: 751.4823
     speed: 2
-    m_Value: 817.5513
+    m_Value: 751.4823
   m_Ortho:
     m_Target: 1
     speed: 2
