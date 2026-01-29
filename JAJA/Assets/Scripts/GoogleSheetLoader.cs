@@ -8,8 +8,8 @@ public class QuestionData
 {
     public string gameType;
     public string text;
-    public string option1;    // Pour "Tu préfères"
-    public string option2;    // Pour "Tu préfères"
+    public string option1;    // Réponse, Option Tu Préfères, ou Mode Événement
+    public string option2;    // Option 2 Tu Préfères
     public string difficulty;
     public string sips;
 }
@@ -21,68 +21,51 @@ public class GameCategory
     public List<QuestionData> questions = new List<QuestionData>();
 }
 
-// Nouvelle classe pour lier un Nom de Jeu à une URL
 [System.Serializable]
 public class SheetLink
 {
-    public string gameName; // Exemple: "Action ou Vérité"
-    public string url;      // Ton lien CSV
+    public string gameName; 
+    public string url;      
 }
 
 public class GoogleSheetLoader : MonoBehaviour
 {
-    // --- LE SINGLETON ---
     public static GoogleSheetLoader Instance;
+    
     [Header("Configuration")]
-    public List<SheetLink> sheetConfigs; // Remplace la liste de string par ceci
+    public List<SheetLink> sheetConfigs; 
 
-    [Header("Visualisation (Lecture Seule)")]
-    public List<GameCategory> inspectorDatabase = new List<GameCategory>();
-
+    [Header("Visualisation")]
+    public List<GameCategory> inspectorDatabase = new List<GameCategory>(); 
     public Dictionary<string, List<QuestionData>> gameDatabase = new Dictionary<string, List<QuestionData>>();
 
-void Awake()
+    void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Important pour garder les données entre les écrans
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else Destroy(gameObject);
     }
 
     void Start()
     {
-        if (sheetConfigs.Count > 0)
-            StartCoroutine(LoadAllSheets());
-        else
-            Debug.LogWarning("Aucune configuration de Sheet n'a été renseignée !");
+        if (sheetConfigs.Count > 0) StartCoroutine(LoadAllSheets());
     }
 
-   IEnumerator LoadAllSheets()
-{
-    gameDatabase.Clear();
-    inspectorDatabase.Clear();
-
-    List<Coroutine> activeCoroutines = new List<Coroutine>();
-
-    // On lance TOUS les téléchargements en même temps
-    foreach (SheetLink config in sheetConfigs)
+    IEnumerator LoadAllSheets()
     {
-        activeCoroutines.Add(StartCoroutine(DownloadData(config.url, config.gameName)));
-    }
+        gameDatabase.Clear();
+        List<Coroutine> activeCoroutines = new List<Coroutine>();
 
-    // On attend que toutes les coroutines soient terminées
-    foreach (var coroutine in activeCoroutines)
-    {
-        yield return coroutine;
-    }
+        foreach (SheetLink config in sheetConfigs)
+        {
+            // On lance le téléchargement pour chaque jeu configuré
+            activeCoroutines.Add(StartCoroutine(DownloadData(config.url, config.gameName)));
+        }
 
-    Debug.Log("Base de données chargée en parallèle !");
-}
+        foreach (var coroutine in activeCoroutines) yield return coroutine;
+
+        UpdateInspectorList();
+        Debug.Log("--- CHARGEMENT TERMINÉ DE TOUTES LES SHEETS ---");
+    }
 
     IEnumerator DownloadData(string url, string targetGameName)
     {
@@ -92,74 +75,62 @@ void Awake()
 
             if (webRequest.result == UnityWebRequest.Result.Success)
             {
-                // On transmet le nom cible au parsing
                 ParseCSV(webRequest.downloadHandler.text, targetGameName);
             }
             else
             {
-                Debug.LogError("Erreur sur l'URL de " + targetGameName + " : " + webRequest.error);
+                Debug.LogError($"Erreur chargement {targetGameName} : {webRequest.error}");
             }
         }
     }
 
     void ParseCSV(string data, string targetGameName)
-{
-    // On remplace les sauts de ligne Windows par un format standard
-    string[] lines = data.Replace("\r", "").Split('\n');
-    if (lines.Length < 2) return;
-
-    if (!gameDatabase.ContainsKey(targetGameName))
-        gameDatabase.Add(targetGameName, new List<QuestionData>());
-
-    for (int i = 1; i < lines.Length; i++)
     {
-        string line = lines[i].Trim();
-        if (string.IsNullOrEmpty(line)) continue;
+        string[] lines = data.Replace("\r", "").Split('\n');
+        
+        if (!gameDatabase.ContainsKey(targetGameName))
+            gameDatabase.Add(targetGameName, new List<QuestionData>());
 
-        string[] cols = line.Split(',');
-
-        // On vérifie qu'on a au moins les colonnes de base (0 à 5)
-        if (cols.Length >= 6)
+        for (int i = 1; i < lines.Length; i++)
         {
-            QuestionData q = new QuestionData();
-            q.gameType = targetGameName;
-            q.difficulty = cols.Length > 4 ? cols[4].Trim() : "Normal"; // Colonne 'category'
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
 
-            // LOGIQUE "TU PRÉFÈRES"
-            if (targetGameName.ToLower().Contains("préfère"))
-            {
-                // Vérifie qu'on a bien les deux options (index 5 et 6)
-                q.option1 = cols[5].Trim();
-                q.option2 = (cols.Length > 6) ? cols[6].Trim() : "...";
-                q.text = $"{q.option1} \n\n OU \n\n {q.option2} ?";
-                
-                // Les gorgées sont normalement à l'index 7
-                q.sips = (cols.Length > 7) ? cols[7].Trim() : "1";
-            }
-            else
-            {
-                // JEUX CLASSIQUES
-                q.text = cols[5].Trim(); // Colonne 'text'
-                
-                // Pour les jeux classiques, les gorgées sont souvent juste après le texte (index 6)
-                // MAIS si ton fichier a la même structure partout, elles sont à l'index 7
-                q.sips = (cols.Length > 7) ? cols[7].Trim() : "1";
-            }
+            string[] cols = line.Split(',');
 
-            gameDatabase[targetGameName].Add(q);
-        }
-        else
-        {
-            Debug.LogWarning($"Ligne {i} ignorée car incomplète : {line}");
+            if (cols.Length >= 6)
+            {
+                QuestionData q = new QuestionData();
+                q.gameType = targetGameName; // Le titre de la carte sera "targetGameName"
+                q.difficulty = (cols.Length > 4) ? cols[4].Trim() : "Normal";
+                
+                string rawText = cols[5].Trim().Replace("|", "\n");
+                string col6 = (cols.Length > 6) ? cols[6].Trim() : "";
+                string col7 = (cols.Length > 7) ? cols[7].Trim() : "1";
+
+                if (targetGameName.ToLower().Contains("préfère"))
+                {
+                    q.option1 = rawText;
+                    q.option2 = col6;
+                    q.text = ""; 
+                    q.sips = col7;
+                }
+                else
+                {
+                    q.text = rawText;
+                    q.option1 = col6; // Stocke la réponse ou le mode événement
+                    q.sips = col7;
+                }
+
+                gameDatabase[targetGameName].Add(q);
+            }
         }
     }
-    UpdateInspectorList();
-}
 
     void UpdateInspectorList()
     {
         inspectorDatabase.Clear();
-        foreach(KeyValuePair<string, List<QuestionData>> entry in gameDatabase)
+        foreach (KeyValuePair<string, List<QuestionData>> entry in gameDatabase)
         {
             GameCategory newCat = new GameCategory();
             newCat.categoryName = entry.Key;

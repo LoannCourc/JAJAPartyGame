@@ -1,96 +1,129 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using TMP_InputField = TMPro.TMP_InputField; // Sécurité pour TMP
+using TMP_Text = TMPro.TMP_Text;
+using DG.Tweening; // Importation obligatoire
 using System.Collections.Generic;
 
 public class PlayerListManager : MonoBehaviour
 {
-    [Header("Configuration UI")]
-    public GameObject playerRowPrefab; 
-    public Transform container; // L'objet "Content" de la ScrollView
+    [Header("Saisie Fixe")]
+    public TMP_InputField mainInputField; // L'unique champ qui ne bouge pas
+    public Button addBtn; // Ton bouton avec le "+"
+
+    [Header("Liste Dynamique")]
+    public GameObject playerRowPrefab; // Le prefab beige avec le texte et le bouton "-"
+    public Transform container; // Le "Content" de ta ScrollView
     public Button nextButton;
 
+    [Header("Navigation")]
     public GameObject startMenu;
-
     public GameObject gameSelectionMenu;
     public GameMenuManager gameMenuManager;
 
-    private List<GameObject> activeRows = new List<GameObject>();
+    private List<string> playerNames = new List<string>();
+    private Dictionary<string, GameObject> activeRows = new Dictionary<string, GameObject>();
     private const int MAX_PLAYERS = 10;
 
     void Start()
     {
         // Nettoyage au lancement
         foreach (Transform child in container) Destroy(child.gameObject);
-        
-        AddRow();
-        AddRow();
+
+        mainInputField.text = "";
         RefreshUI();
+
+        // Liaison du bouton "+" principal
+        addBtn.onClick.RemoveAllListeners();
+        addBtn.onClick.AddListener(AddPlayerFromInput);
     }
 
-    public void AddRow()
+    // Fonction déclenchée par le bouton "+" principal
+    public void AddPlayerFromInput()
     {
-        if (activeRows.Count >= MAX_PLAYERS) return;
+        string nameToAdd = mainInputField.text.Trim();
 
-        // Création de la ligne
+        if (string.IsNullOrEmpty(nameToAdd) || playerNames.Contains(nameToAdd))
+        {
+            // Petit tremblement horizontal (Shake)
+            mainInputField.transform.DOShakePosition(0.4f, strength: new Vector3(10, 0, 0), vibrato: 10);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(nameToAdd)) return;
+        if (playerNames.Count >= MAX_PLAYERS) return;
+        if (playerNames.Contains(nameToAdd)) return; // Évite les doublons
+
+        AddPlayer(nameToAdd);
+
+        mainInputField.text = ""; // Vide le champ
+        mainInputField.ActivateInputField(); // Garde le focus pour taper le suivant
+    }
+
+    private void AddPlayer(string name)
+    {
+        playerNames.Add(name);
+
         GameObject newRow = Instantiate(playerRowPrefab, container);
-        activeRows.Add(newRow);
+        activeRows.Add(name, newRow);
 
-        // Liaison du bouton "+" à l'intérieur du Prefab
-        // Assure-toi que ton bouton dans le Prefab s'appelle exactement "AddButton"
-        Button plusButton = newRow.transform.Find("AddButton")?.GetComponent<Button>();
-        if (plusButton != null)
+        // --- ANIMATION D'APPARITION ---
+        newRow.transform.localScale = Vector3.zero; // Sécurité : repart de zéro
+        newRow.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+        // ------------------------------
+
+        newRow.GetComponentInChildren<TMP_Text>().text = name;
+
+        Button removeBtn = newRow.transform.Find("RemoveButton")?.GetComponent<Button>();
+        if (removeBtn != null)
         {
-            plusButton.onClick.RemoveAllListeners(); // Sécurité
-            plusButton.onClick.AddListener(() => OnPlusButtonClicked(newRow));
+            removeBtn.onClick.AddListener(() => RemovePlayer(name));
         }
 
         RefreshUI();
     }
 
-    private void OnPlusButtonClicked(GameObject currentRow)
+    public void RemovePlayer(string name)
     {
-        TMP_InputField input = currentRow.GetComponentInChildren<TMP_InputField>();
-
-       // On n'ajoute une ligne que si le nom actuel n'est pas vide [cite: 17]
-        if (!string.IsNullOrEmpty(input.text))
+        if (playerNames.Contains(name))
         {
-            // Si on clique sur le "+" de la dernière ligne, on en crée une nouvelle
-            if (activeRows.IndexOf(currentRow) == activeRows.Count - 1)
+            playerNames.Remove(name);
+
+            GameObject rowToDestroy = activeRows[name];
+
+            // On retire l'entrée du dictionnaire avant de lancer l'anim
+            activeRows.Remove(name);
+
+            // --- ANIMATION DE SORTIE ---
+            if (rowToDestroy != null)
             {
-                AddRow();
+                rowToDestroy.transform.DOScale(Vector3.zero, 0.2f)
+                    .SetEase(Ease.InBack)
+                    .OnComplete(() => Destroy(rowToDestroy));
             }
+            // ---------------------------
         }
+        RefreshUI();
     }
 
     private void RefreshUI()
     {
-       // Le bouton "Suivant" s'active si au moins 2 joueurs ont un nom [cite: 3, 17]
-        int filledCount = 0;
-        foreach (GameObject row in activeRows)
-        {
-            if (!string.IsNullOrEmpty(row.GetComponentInChildren<TMP_InputField>().text))
-                filledCount++;
-        }
-        nextButton.interactable = (filledCount >= 2);
+
+
+        // Le bouton "Suivant" s'active si au moins 2 joueurs sont dans la liste
+        nextButton.interactable = (playerNames.Count >= 2);
     }
 
-   public void FinalizePlayers()
+    public void FinalizePlayers()
     {
-        // 1. On enregistre les noms dans le GameManager
         GameManager.Instance.playerNames.Clear();
-        foreach (GameObject row in activeRows)
+        foreach (string name in playerNames)
         {
-            string playerName = row.GetComponentInChildren<TMP_InputField>().text;
-            if (!string.IsNullOrEmpty(playerName))
-                GameManager.Instance.AddPlayer(playerName);
+            GameManager.Instance.AddPlayer(name);
         }
 
-        // 2. Transition visuelle
         startMenu.SetActive(false);
         gameSelectionMenu.SetActive(true);
-
-        // 3. Génération dynamique des jeux
         gameMenuManager.DisplayGames();
     }
 }

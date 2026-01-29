@@ -8,6 +8,7 @@ public class NavigationManager : MonoBehaviour
     public GameObject startMenu;      // Menu principal (Joueurs)
     public GameObject settingsMenu;   // Menu paramètres
     public GameObject addQuestionMenu; // Menu ajout de questions.
+    public GameObject chooseGameMenu;
 
     [Header("Écrans de Personnalisation")]
     public GameObject creationPanel; // L'écran avec le Dropdown "Choix du jeu"
@@ -58,5 +59,6 @@ public class NavigationManager : MonoBehaviour
         if (startMenu) startMenu.SetActive(false);
         if (settingsMenu) settingsMenu.SetActive(false);
         if (addQuestionMenu) addQuestionMenu.SetActive(false);
+        if (chooseGameMenu) chooseGameMenu.SetActive(false);
     }
 }

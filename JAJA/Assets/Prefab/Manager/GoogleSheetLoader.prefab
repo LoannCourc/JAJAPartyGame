@@ -59,4 +59,12 @@ MonoBehaviour:
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=1219249046&single=true&output=csv
   - gameName: "Tu pr\xE9f\xE8res "
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=790440497&single=true&output=csv
+  - gameName: Culture G
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=594782963&single=true&output=csv
+  - gameName: Qui est qui ?
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=1498239851&single=true&output=csv
+  - gameName: "Ench\xE8res"
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=26778154&single=true&output=csv
+  - gameName: "Mytho ou r\xE9alit\xE9 ?"
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=466558057&single=true&output=csv
   inspectorDatabase: []

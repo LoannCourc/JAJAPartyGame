@@ -72,7 +72,7 @@ public void SetQuestionCount(float value)
 {
     // 1. Calcul de l'arrondi au multiple de 5 (le "Snap")
     // On divise par 5, on arrondit à l'entier, et on multiplie par 5
-    int snappedValue = Mathf.RoundToInt(value / 5f) * 5;
+    int snappedValue = Mathf.RoundToInt(value) * 5;
 
     // 2. Mise à jour de la variable de jeu
     questionCount = snappedValue;
@@ -80,10 +80,8 @@ public void SetQuestionCount(float value)
     // 3. Mise à jour du texte affiché
     if (questionCountText != null)
     {
-        questionCountText.text = snappedValue.ToString() + " questions";
+        questionCountText.text = snappedValue.ToString();
     }
-
-    Debug.Log("Nombre de questions (snapped) : " + questionCount);
 }
 
 }
