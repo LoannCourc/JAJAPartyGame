@@ -1,64 +1,95 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 public class NavigationManager : MonoBehaviour
 {
     public static NavigationManager Instance;
 
     [Header("Panneaux")]
-    public GameObject startMenu;      // Menu principal (Joueurs)
-    public GameObject settingsMenu;   // Menu paramètres
-    public GameObject addQuestionMenu; // Menu ajout de questions.
-    public GameObject chooseGameMenu;
+    public GameObject startMenu;         // Ajout des joueurs
+    public GameObject settingsMenu;      // Options
+    public GameObject gameSelectionMenu; // Liste des jeux
+    public GameObject filterMenu;        // Filtres
+    public GameObject gamePanel;         // Gameplay (questions/gorgées)
+    public GameObject addQuestionMenu;   // Ajouter questions
+    public GameObject addedQuestionsListMenu; // Liste historique questions
 
-    [Header("Écrans de Personnalisation")]
-    public GameObject creationPanel; // L'écran avec le Dropdown "Choix du jeu"
-    public GameObject listPanel;     // L'écran avec le Scroll View (Historique)
+    // La pile qui mémorise l'ordre d'ouverture des menus
+    private Stack<GameObject> menuStack = new Stack<GameObject>();
+    public event Action<GameObject> OnMenuOpened;
 
     void Awake()
     {
-        Instance = this;
-        ShowStartMenu(); // Par défaut, on affiche l'accueil
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    // Affiche le menu des joueurs (Accueil)
-    public void ShowStartMenu()
+    void Start()
     {
-        HideAll();
-        startMenu.SetActive(true);
+        // On initialise l'application sur le menu de départ
+        ShowMenu(startMenu, false); 
     }
 
-    // Affiche les paramètres
-    public void ShowSettings()
+    // Fonction universelle pour afficher un menu
+    // keepHistory = true permet de pouvoir revenir en arrière
+    public void ShowMenu(GameObject menuToShow, bool keepHistory = true)
     {
-        HideAll();
-        settingsMenu.SetActive(true);
+        if (menuToShow == null) return;
+
+        // Si on veut pouvoir revenir en arrière, on sauvegarde le menu actuel
+        if (keepHistory && menuStack.Count > 0)
+        {
+            menuStack.Peek().SetActive(false);
+        }
+        else
+        {
+            HideAll(); // Sinon on nettoie tout
+        }
+
+        menuToShow.SetActive(true);
+        menuStack.Push(menuToShow);
+        OnMenuOpened?.Invoke(menuToShow);
     }
 
-    // Affiche l'écran d'ajout de questions
-    public void ShowAddQuestions()
+    // LA fonction magique pour tous tes boutons "Retour"
+    public void GoBack()
     {
-        HideAll();
-        addQuestionMenu.SetActive(true);
+        if (menuStack.Count <= 1) 
+        {
+            Debug.Log("Déjà sur le menu principal");
+            return;
+        }
+
+        // On enlève le menu actuel de la pile
+        GameObject currentMenu = menuStack.Pop();
+        currentMenu.SetActive(false);
+
+        // On affiche le menu précédent
+        GameObject previousMenu = menuStack.Peek();
+        previousMenu.SetActive(true);
+        OnMenuOpened?.Invoke(previousMenu);
     }
 
-    public void ShowCreation()
-    {
-        creationPanel.SetActive(true);
-        listPanel.SetActive(false);
-    }
+    // Raccourcis pour tes boutons dans l'Inspector
+    public void OpenStartMenu() => ShowMenu(startMenu, false); // Faux car c'est la racine
+    public void OpenSettings() => ShowMenu(settingsMenu);
+    public void OpenGameSelection() => ShowMenu(gameSelectionMenu);
+    public void OpenFilters() => ShowMenu(filterMenu);
+    public void OpenGamePanel() => ShowMenu(gamePanel);
+    public void OpenAddQuestion() => ShowMenu(addQuestionMenu);
+    public void OpenAddedQuestionsList() => ShowMenu(addedQuestionsListMenu);
 
-    public void ShowHistory()
-    {
-        creationPanel.SetActive(false);
-        listPanel.SetActive(true);
-    }
-
-    // Désactive tous les panneaux pour éviter les superpositions
     private void HideAll()
     {
-        if (startMenu) startMenu.SetActive(false);
-        if (settingsMenu) settingsMenu.SetActive(false);
-        if (addQuestionMenu) addQuestionMenu.SetActive(false);
-        if (chooseGameMenu) chooseGameMenu.SetActive(false);
+        startMenu.SetActive(false);
+        settingsMenu.SetActive(false);
+        gameSelectionMenu.SetActive(false);
+        filterMenu.SetActive(false);
+        gamePanel.SetActive(false);
+        addQuestionMenu.SetActive(false);
+        addedQuestionsListMenu.SetActive(false);
+        
+        menuStack.Clear();
     }
 }

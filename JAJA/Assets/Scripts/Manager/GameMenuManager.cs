@@ -6,17 +6,50 @@ using System.Collections.Generic;
 public class GameMenuManager : MonoBehaviour
 {
     [Header("Références")]
-    public GoogleSheetLoader sheetLoader; 
-    public GameObject gameCardPrefab;     
-    public Transform container;           
+    public GoogleSheetLoader sheetLoader;
+    public GameObject gameCardPrefab;
+    public Transform container;
 
 
     [Header("Navigation")]
-    public GameObject filterMenu; // L'objet parent de ton écran de filtres
-    public GameObject gameSelectionMenu; // L'objet parent de ton écran de filtres
     public TMP_Text selectedGameTitle; // Le texte du titre dans l'écran filtres
-    // On ne génère plus dans Start() pour éviter les erreurs de timing
-    
+                                       // On ne génère plus dans Start() pour éviter les erreurs de timing
+
+
+    void OnEnable()
+    {
+        // Grâce au Script Execution Order, Instance ne sera plus nulle
+        if (NavigationManager.Instance != null)
+        {
+            NavigationManager.Instance.OnMenuOpened += CheckIfIDisplay;
+        }
+    }
+
+    private void DelayedSubscribe()
+    {
+        if (NavigationManager.Instance != null)
+        {
+            NavigationManager.Instance.OnMenuOpened += CheckIfIDisplay;
+        }
+    }
+
+    void OnDisable()
+    {
+        // On vérifie toujours la nullité avant de se désabonner
+        if (NavigationManager.Instance != null)
+        {
+            NavigationManager.Instance.OnMenuOpened -= CheckIfIDisplay;
+        }
+    }
+
+    private void CheckIfIDisplay(GameObject openedMenu)
+    {
+        // On utilise gameObject car ce script est attaché au panel GameSelectionMenu
+        if (openedMenu == this.gameObject || openedMenu.name == "GameSelectionMenu")
+        {
+            DisplayGames();
+        }
+    }
     public void DisplayGames()
     {
         // Nettoyage de sécurité pour éviter les doublons
@@ -29,44 +62,42 @@ public class GameMenuManager : MonoBehaviour
             return;
         }
 
-       foreach (var game in sheetLoader.gameDatabase)
-{
-    GameObject card = Instantiate(gameCardPrefab, container);
-    
-    // 1. On vérifie le texte
-    TMP_Text title = card.GetComponentInChildren<TMP_Text>();
-    if (title != null) title.text = game.Key; 
+        foreach (var game in sheetLoader.gameDatabase)
+        {
+            GameObject card = Instantiate(gameCardPrefab, container);
 
-    // 2. On vérifie le bouton
-    Button btn = card.GetComponent<Button>();
-    
-    // Si le bouton n'est pas sur la racine, on le cherche dans les enfants
-    if (btn == null) btn = card.GetComponentInChildren<Button>();
+            // 1. On vérifie le texte
+            TMP_Text title = card.GetComponentInChildren<TMP_Text>();
+            if (title != null) title.text = game.Key;
 
-    if (btn != null)
-    {
-        string currentGameName = game.Key; // Important pour la capture de variable
-        btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(() => OnGameSelected(currentGameName));
-    }
-    else
-    {
-        Debug.LogError($"Erreur : Le Prefab '{card.name}' n'a pas de composant Button !");
-    }
-}
-        
-        Debug.Log(sheetLoader.gameDatabase.Count + " jeux affichés.");
+            // 2. On vérifie le bouton
+            Button btn = card.GetComponent<Button>();
+
+            // Si le bouton n'est pas sur la racine, on le cherche dans les enfants
+            if (btn == null) btn = card.GetComponentInChildren<Button>();
+
+            if (btn != null)
+            {
+                string currentGameName = game.Key; // Important pour la capture de variable
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() => OnGameSelected(currentGameName));
+            }
+            else
+            {
+                Debug.LogError($"Erreur : Le Prefab '{card.name}' n'a pas de composant Button !");
+            }
+        }
     }
 
     void OnGameSelected(string name)
     {
+        // 1. On enregistre le choix dans le GameManager
         GameManager.Instance.SelectGame(name);
-        // Ici, activez votre écran de filtres (Difficulté / Nb questions)
-        // 2. Met à jour l'UI des filtres
-    selectedGameTitle.text = name;
-    
-    // 3. Change d'écran
-    filterMenu.SetActive(true);      // Affiche les filtres
-    gameSelectionMenu.SetActive(false);
+
+        // 2. On met à jour le texte du titre dans l'écran de filtres
+        if (selectedGameTitle != null)
+            selectedGameTitle.text = name;
+
+        NavigationManager.Instance.OpenFilters();
     }
 }

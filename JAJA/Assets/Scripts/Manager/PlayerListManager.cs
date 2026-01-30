@@ -16,9 +16,6 @@ public class PlayerListManager : MonoBehaviour
     public Transform container; // Le "Content" de ta ScrollView
     public Button nextButton;
 
-    [Header("Navigation")]
-    public GameObject startMenu;
-    public GameObject gameSelectionMenu;
     public GameMenuManager gameMenuManager;
 
     private List<string> playerNames = new List<string>();
@@ -113,7 +110,6 @@ public class PlayerListManager : MonoBehaviour
         // Le bouton "Suivant" s'active si au moins 2 joueurs sont dans la liste
         nextButton.interactable = (playerNames.Count >= 2);
     }
-
     public void FinalizePlayers()
     {
         GameManager.Instance.playerNames.Clear();
@@ -122,8 +118,11 @@ public class PlayerListManager : MonoBehaviour
             GameManager.Instance.AddPlayer(name);
         }
 
-        startMenu.SetActive(false);
-        gameSelectionMenu.SetActive(true);
+        // --- ON REMPLACE LA NAVIGATION MANUELLE PAR CELLE-CI ---
+        // On demande au NavigationManager d'ouvrir le menu de sélection
+        NavigationManager.Instance.OpenGameSelection();
+
+        // On demande au manager des jeux de rafraîchir sa liste
         gameMenuManager.DisplayGames();
     }
 }
