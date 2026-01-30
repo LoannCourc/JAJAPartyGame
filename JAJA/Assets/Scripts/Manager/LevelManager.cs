@@ -12,7 +12,6 @@ public class LevelManager : MonoBehaviour
 
     public void PrepareGame()
     {
-        Debug.Log("Je passe par PrepareGame");
         gameSessionDeck.Clear();
         // --- 1. SÉLECTION ET PRÉPARATION DU POOL ---
         string selectedGame = GameManager.Instance.selectedGameMode.Trim();

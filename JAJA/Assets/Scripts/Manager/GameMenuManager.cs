@@ -50,44 +50,43 @@ public class GameMenuManager : MonoBehaviour
             DisplayGames();
         }
     }
-    public void DisplayGames()
+   public void DisplayGames()
+{
+    // 1. Nettoyage habituel
+    foreach (Transform child in container) Destroy(child.gameObject);
+
+    // 2. On boucle sur sheetConfigs au lieu de gameDatabase pour GARDER L'ORDRE
+    foreach (var config in GoogleSheetLoader.Instance.sheetConfigs)
     {
-        // Nettoyage de sécurité pour éviter les doublons
-        foreach (Transform child in container) Destroy(child.gameObject);
+        string gameName = config.gameName;
 
-        // On vérifie si les données sont prêtes dans le dictionnaire
-        if (sheetLoader.gameDatabase.Count == 0)
+        // On vérifie si les données de ce jeu ont bien été téléchargées
+        if (!GoogleSheetLoader.Instance.gameDatabase.ContainsKey(gameName)) continue;
+
+        GameObject go = Instantiate(gameCardPrefab, container);
+
+        // --- RÉFÉRENCES ---
+        TMP_Text title = go.transform.Find("TitleGame").GetComponent<TMP_Text>();
+        TMP_Text desc = go.transform.Find("GameDescription").GetComponent<TMP_Text>();
+        Image iconImg = go.transform.Find("GameImage").GetComponent<Image>();
+        Button btn = go.GetComponent<Button>();
+
+        // --- ATTRIBUTION ---
+        title.text = gameName;
+
+        if (GoogleSheetLoader.Instance.gameDescriptions.ContainsKey(gameName))
+            desc.text = GoogleSheetLoader.Instance.gameDescriptions[gameName];
+
+        if (GoogleSheetLoader.Instance.gameIcons.ContainsKey(gameName))
+            iconImg.sprite = GoogleSheetLoader.Instance.gameIcons[gameName];
+
+        btn.onClick.AddListener(() =>
         {
-            Debug.LogWarning("La base de données est vide au moment de l'affichage !");
-            return;
-        }
-
-        foreach (var game in sheetLoader.gameDatabase)
-        {
-            GameObject card = Instantiate(gameCardPrefab, container);
-
-            // 1. On vérifie le texte
-            TMP_Text title = card.GetComponentInChildren<TMP_Text>();
-            if (title != null) title.text = game.Key;
-
-            // 2. On vérifie le bouton
-            Button btn = card.GetComponent<Button>();
-
-            // Si le bouton n'est pas sur la racine, on le cherche dans les enfants
-            if (btn == null) btn = card.GetComponentInChildren<Button>();
-
-            if (btn != null)
-            {
-                string currentGameName = game.Key; // Important pour la capture de variable
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(() => OnGameSelected(currentGameName));
-            }
-            else
-            {
-                Debug.LogError($"Erreur : Le Prefab '{card.name}' n'a pas de composant Button !");
-            }
-        }
+            GameManager.Instance.selectedGameMode = gameName;
+            NavigationManager.Instance.OpenFilters();
+        });
     }
+}
 
     void OnGameSelected(string name)
     {

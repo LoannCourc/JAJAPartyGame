@@ -14,6 +14,11 @@ public class NavigationManager : MonoBehaviour
     public GameObject gamePanel;         // Gameplay (questions/gorgées)
     public GameObject addQuestionMenu;   // Ajouter questions
     public GameObject addedQuestionsListMenu; // Liste historique questions
+    public GameObject endMenu;
+
+    [Header("Effets")]
+    public ParticleSystem confettiParticles;
+    public ParticleSystem confettiParticlesTwo;
 
     // La pile qui mémorise l'ordre d'ouverture des menus
     private Stack<GameObject> menuStack = new Stack<GameObject>();
@@ -50,6 +55,20 @@ public class NavigationManager : MonoBehaviour
         menuToShow.SetActive(true);
         menuStack.Push(menuToShow);
         OnMenuOpened?.Invoke(menuToShow);
+
+        if (confettiParticles != null)
+    {
+        if (menuToShow == endMenu)
+        {
+            confettiParticles.Play();
+            confettiParticlesTwo.Play();
+        }
+        else
+        {
+            confettiParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            confettiParticlesTwo.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+    }
     }
 
     // LA fonction magique pour tous tes boutons "Retour"
@@ -79,6 +98,7 @@ public class NavigationManager : MonoBehaviour
     public void OpenGamePanel() => ShowMenu(gamePanel);
     public void OpenAddQuestion() => ShowMenu(addQuestionMenu);
     public void OpenAddedQuestionsList() => ShowMenu(addedQuestionsListMenu);
+    public void OpenEndMenu() => ShowMenu(endMenu);
 
     private void HideAll()
     {
@@ -89,6 +109,7 @@ public class NavigationManager : MonoBehaviour
         gamePanel.SetActive(false);
         addQuestionMenu.SetActive(false);
         addedQuestionsListMenu.SetActive(false);
+        endMenu.SetActive(false);
         
         menuStack.Clear();
     }

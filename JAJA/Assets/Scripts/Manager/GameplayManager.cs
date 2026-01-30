@@ -168,8 +168,15 @@ public class GameplayManager : MonoBehaviour
     public void NextQuestion()
     {
         currentIndex++;
-        if (currentIndex < currentDeck.Count) DisplayQuestion();
-        else ReturnToMenu();
+        if (currentIndex < currentDeck.Count)
+        {
+            DisplayQuestion();
+        }
+        else
+        {
+            // PLUS DE ReturnToMenu() ici, on affiche la fin !
+            NavigationManager.Instance.OpenEndMenu();
+        }
     }
 
     // --- LE NETTOYAGE EST ICI ---

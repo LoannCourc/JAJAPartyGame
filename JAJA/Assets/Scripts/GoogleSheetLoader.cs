@@ -24,21 +24,25 @@ public class GameCategory
 [System.Serializable]
 public class SheetLink
 {
-    public string gameName; 
-    public string url;      
+    public string gameName;
+    public string url;
+    [TextArea(2, 5)]
+    public string gameDescription;
+    public Sprite gameIcon;
 }
 
 public class GoogleSheetLoader : MonoBehaviour
 {
     public static GoogleSheetLoader Instance;
-    
+
     [Header("Configuration")]
-    public List<SheetLink> sheetConfigs; 
+    public List<SheetLink> sheetConfigs;
 
     [Header("Visualisation")]
-    public List<GameCategory> inspectorDatabase = new List<GameCategory>(); 
+    public List<GameCategory> inspectorDatabase = new List<GameCategory>();
     public Dictionary<string, List<QuestionData>> gameDatabase = new Dictionary<string, List<QuestionData>>();
-
+    public Dictionary<string, string> gameDescriptions = new Dictionary<string, string>();
+    public Dictionary<string, Sprite> gameIcons = new Dictionary<string, Sprite>();
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
@@ -53,18 +57,35 @@ public class GoogleSheetLoader : MonoBehaviour
     IEnumerator LoadAllSheets()
     {
         gameDatabase.Clear();
+        gameDescriptions.Clear();
+        gameIcons.Clear();
+
+        // 1. On pré-remplit les descriptions depuis l'inspecteur
+        foreach (SheetLink config in sheetConfigs)
+        {
+            if (!gameDescriptions.ContainsKey(config.gameName))
+                gameDescriptions.Add(config.gameName, config.gameDescription);
+
+            if (!gameIcons.ContainsKey(config.gameName)) 
+                gameIcons.Add(config.gameName, config.gameIcon);
+        }
+
+        // 2. Préparation du téléchargement
         List<Coroutine> activeCoroutines = new List<Coroutine>();
 
         foreach (SheetLink config in sheetConfigs)
         {
-            // On lance le téléchargement pour chaque jeu configuré
             activeCoroutines.Add(StartCoroutine(DownloadData(config.url, config.gameName)));
         }
 
-        foreach (var coroutine in activeCoroutines) yield return coroutine;
+        // 3. C'est ici que l'erreur se règle : on attend que tout soit fini
+        foreach (var coroutine in activeCoroutines)
+        {
+            yield return coroutine;
+        }
 
         UpdateInspectorList();
-        Debug.Log("--- CHARGEMENT TERMINÉ DE TOUTES LES SHEETS ---");
+        Debug.Log("--- CHARGEMENT TERMINÉ ---");
     }
 
     IEnumerator DownloadData(string url, string targetGameName)
@@ -87,7 +108,7 @@ public class GoogleSheetLoader : MonoBehaviour
     void ParseCSV(string data, string targetGameName)
     {
         string[] lines = data.Replace("\r", "").Split('\n');
-        
+
         if (!gameDatabase.ContainsKey(targetGameName))
             gameDatabase.Add(targetGameName, new List<QuestionData>());
 
@@ -103,7 +124,7 @@ public class GoogleSheetLoader : MonoBehaviour
                 QuestionData q = new QuestionData();
                 q.gameType = targetGameName; // Le titre de la carte sera "targetGameName"
                 q.difficulty = (cols.Length > 4) ? cols[4].Trim() : "Normal";
-                
+
                 string rawText = cols[5].Trim().Replace("|", "\n");
                 string col6 = (cols.Length > 6) ? cols[6].Trim() : "";
                 string col7 = (cols.Length > 7) ? cols[7].Trim() : "1";
@@ -112,7 +133,7 @@ public class GoogleSheetLoader : MonoBehaviour
                 {
                     q.option1 = rawText;
                     q.option2 = col6;
-                    q.text = ""; 
+                    q.text = "";
                     q.sips = col7;
                 }
                 else
