@@ -211,7 +211,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &26248730
 RectTransform:
   m_ObjectHideFlags: 0
@@ -787,7 +787,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 117913426}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1934189374}
+        m_TargetAssemblyTypeName: CustomQuestionManager, Assembly-CSharp
+        m_MethodName: SaveNewQuestion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &117913426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2011,7 +2023,7 @@ RectTransform:
   m_Father: {fileID: 1319602271}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 774, y: 135}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2322,6 +2334,7 @@ Transform:
   - {fileID: 5613408313881947174}
   - {fileID: 1934189373}
   - {fileID: 1997622600}
+  - {fileID: 1504009047}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &347942794
@@ -3630,28 +3643,28 @@ MonoBehaviour:
     - m_Text: Le meilleur
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Qui pourrait ?
+    - m_Text: Qui pourrait
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: "Action ou v\xE9rit\xE9 "
+    - m_Text: "Action ou v\xE9rit\xE9"
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Je n'ai jamais
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Petit bac
+    - m_Text: Petit Bac
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: "Tu pr\xE9f\xE8res "
+    - m_Text: "Tu pr\xE9f\xE8res"
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Culture G
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: "Mytho ou r\xE9alit\xE9"
+    - m_Text: "Mytho ou r\xE9alit\xE9 ?"
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Qui est qui
+    - m_Text: Qui est qui ?
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: "Ench\xE8res"
@@ -3991,7 +4004,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1504009048}
+        m_TargetAssemblyTypeName: SettingsManager, Assembly-CSharp
+        m_MethodName: ToggleVibro
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &514202941
 GameObject:
@@ -8521,7 +8546,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1504009048}
+        m_TargetAssemblyTypeName: SettingsManager, Assembly-CSharp
+        m_MethodName: ToggleSips
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &841792941
 GameObject:
@@ -11277,7 +11314,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1504009048}
+        m_TargetAssemblyTypeName: SettingsManager, Assembly-CSharp
+        m_MethodName: ToggleCustom
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &1128803021
 GameObject:
@@ -12353,7 +12402,7 @@ MonoBehaviour:
   m_text: 1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 29c84cb7abbac5f40ba79235c03e2a0e, type: 2}
-  m_sharedMaterial: {fileID: 1919669587626804801, guid: 5b06bd8c1c2c9d2449afd599e4945bf4, type: 2}
+  m_sharedMaterial: {fileID: 1919669587626804801, guid: 29c84cb7abbac5f40ba79235c03e2a0e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -15939,6 +15988,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1500983328}
   m_CullTransparentMesh: 1
+--- !u!4 &1504009047 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+  m_PrefabInstance: {fileID: 8467548005969290556}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1504009048 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4075539616398366258, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+  m_PrefabInstance: {fileID: 8467548005969290556}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdb7a0f4fbd1ccc45952ee32273ccfee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsManager
 --- !u!1 &1506289976
 GameObject:
   m_ObjectHideFlags: 0
@@ -17051,7 +17116,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -50, y: 0.0053100586}
+  m_AnchoredPosition: {x: -50, y: 0.004760742}
   m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1643667056
@@ -20346,7 +20411,7 @@ RectTransform:
   m_Father: {fileID: 711537382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 174, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -20571,6 +20636,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3548166374013610966, guid: 5a6b9369059f49248b03226ce0ade4e2, type: 3}
   m_PrefabInstance: {fileID: 3015075267089656188}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1934189374 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1931559924367284245, guid: 5a6b9369059f49248b03226ce0ade4e2, type: 3}
+  m_PrefabInstance: {fileID: 3015075267089656188}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d274809772fc9b248af47a1bfe43c9b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomQuestionManager
 --- !u!1 &1941791526
 GameObject:
   m_ObjectHideFlags: 0
@@ -23445,6 +23521,75 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c0ab7ca6f67e7fc4baef0aa1cf073b37, type: 3}
+--- !u!1001 &8467548005969290556
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 346523570}
+    m_Modifications:
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 929999896584746334, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4075539616398366258, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: sipsToggle
+      value: 
+      objectReference: {fileID: 836186543}
+    - target: {fileID: 4075539616398366258, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: vibroToggle
+      value: 
+      objectReference: {fileID: 507616749}
+    - target: {fileID: 4075539616398366258, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: customToggle
+      value: 
+      objectReference: {fileID: 1092582637}
+    - target: {fileID: 5421985646413155495, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
+      propertyPath: m_Name
+      value: SettingsManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e90f82aa8060b9547bc2819944e4b97f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

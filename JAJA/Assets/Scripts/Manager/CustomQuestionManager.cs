@@ -89,6 +89,10 @@ public class CustomQuestionManager : MonoBehaviour
         customData.questions.Add(newQ);
         SaveToFile();
 
+        if (GoogleSheetLoader.Instance != null)
+        {
+            GoogleSheetLoader.Instance.LoadLocalCustomQuestions();
+        }
         // Reset des champs
         singleInputField.text = "";
         option1Field.text = "";

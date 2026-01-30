@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 [System.Serializable]
 public class QuestionData
@@ -54,6 +55,45 @@ public class GoogleSheetLoader : MonoBehaviour
         if (sheetConfigs.Count > 0) StartCoroutine(LoadAllSheets());
     }
 
+
+    public void LoadLocalCustomQuestions()
+    {
+        string filePath = Path.Combine(Application.persistentDataPath, "custom_questions.json");
+
+        if (File.Exists(filePath))
+        {
+            string json = File.ReadAllText(filePath);
+            // On utilise la classe que tu as déjà définie dans ton CustomQuestionManager
+            CustomQuestionManager.CustomQuestionList localList = JsonUtility.FromJson<CustomQuestionManager.CustomQuestionList>(json);
+
+            foreach (var q in localList.questions)
+            {
+                QuestionData convertedQ = new QuestionData();
+                convertedQ.gameType = q.gameType;
+                convertedQ.sips = q.sips.ToString();
+                convertedQ.difficulty = "custom";
+
+                if (q.gameType.ToLower().Contains("préfère") && q.text.Contains(" | "))
+                {
+                    string[] parts = q.text.Split(new string[] { " | " }, System.StringSplitOptions.None);
+                    convertedQ.option1 = parts[0];
+                    convertedQ.option2 = parts[1];
+                    convertedQ.text = ""; // Vide car le GameplayManager utilise option1/2
+                }
+                else
+                {
+                    convertedQ.text = q.text;
+                }
+
+                if (!gameDatabase.ContainsKey(q.gameType))
+                    gameDatabase.Add(q.gameType, new List<QuestionData>());
+
+                gameDatabase[q.gameType].Add(convertedQ);
+            }
+            Debug.Log("Questions locales JSON injectées avec succès !");
+        }
+    }
+
     IEnumerator LoadAllSheets()
     {
         gameDatabase.Clear();
@@ -66,7 +106,7 @@ public class GoogleSheetLoader : MonoBehaviour
             if (!gameDescriptions.ContainsKey(config.gameName))
                 gameDescriptions.Add(config.gameName, config.gameDescription);
 
-            if (!gameIcons.ContainsKey(config.gameName)) 
+            if (!gameIcons.ContainsKey(config.gameName))
                 gameIcons.Add(config.gameName, config.gameIcon);
         }
 
@@ -83,7 +123,7 @@ public class GoogleSheetLoader : MonoBehaviour
         {
             yield return coroutine;
         }
-
+        LoadLocalCustomQuestions();
         UpdateInspectorList();
         Debug.Log("--- CHARGEMENT TERMINÉ ---");
     }

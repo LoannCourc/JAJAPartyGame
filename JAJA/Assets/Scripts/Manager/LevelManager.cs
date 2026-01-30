@@ -13,6 +13,7 @@ public class LevelManager : MonoBehaviour
     public void PrepareGame()
     {
         gameSessionDeck.Clear();
+        
         // --- 1. SÉLECTION ET PRÉPARATION DU POOL ---
         string selectedGame = GameManager.Instance.selectedGameMode.Trim();
         string selectedGameLower = selectedGame.ToLower();
@@ -34,7 +35,6 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
-            // Recherche du deck spécifique
             foreach (var key in GoogleSheetLoader.Instance.gameDatabase.Keys)
             {
                 if (key.ToLower() == selectedGameLower)
@@ -45,21 +45,26 @@ public class LevelManager : MonoBehaviour
             }
         }
 
-        if (masterPool.Count == 0)
-        {
-            return;
-        }
+        if (masterPool.Count == 0) return;
 
-        // --- 2. FILTRAGE PAR DIFFICULTÉ ---
+        // --- 2. FILTRAGE PAR DIFFICULTÉ ET OPTIONS (SETTINGS) ---
         List<QuestionData> filteredList = new List<QuestionData>();
-        if (targetDiff == "aléatoire" || string.IsNullOrEmpty(targetDiff))
+
+        // Logique Toggle "Seulement mes questions"
+        if (SettingsManager.Instance != null && SettingsManager.Instance.onlyCustomQuestions)
         {
-            filteredList = new List<QuestionData>(masterPool);
+            filteredList = masterPool.FindAll(q => q.difficulty.ToLower().Trim() == "custom");
+            
+            // Si aucune question custom n'est trouvée, on reprend le pool normal
+            if (filteredList.Count == 0)
+            {
+                Debug.Log("Aucune question 'CUSTOM' trouvée, chargement du deck classique.");
+                filteredList = GetDefaultFilteredList(masterPool, targetDiff);
+            }
         }
         else
         {
-            filteredList = masterPool.FindAll(q => q.difficulty.ToLower().Trim() == targetDiff);
-            if (filteredList.Count == 0) filteredList = new List<QuestionData>(masterPool);
+            filteredList = GetDefaultFilteredList(masterPool, targetDiff);
         }
 
         Shuffle(filteredList);
@@ -74,6 +79,20 @@ public class LevelManager : MonoBehaviour
         AddEventsToDeck();
         GameplayManager.Instance.StartGameSession(gameSessionDeck);
         NavigationManager.Instance.OpenGamePanel();
+    }
+
+    // Extraction de la logique de filtrage classique pour plus de clarté
+    private List<QuestionData> GetDefaultFilteredList(List<QuestionData> pool, string diff)
+    {
+        if (diff == "aléatoire" || string.IsNullOrEmpty(diff))
+        {
+            return new List<QuestionData>(pool);
+        }
+        else
+        {
+            List<QuestionData> list = pool.FindAll(q => q.difficulty.ToLower().Trim() == diff);
+            return (list.Count == 0) ? new List<QuestionData>(pool) : list;
+        }
     }
 
     private void AddEventsToDeck()

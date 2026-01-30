@@ -17,8 +17,6 @@ public class GameplayManager : MonoBehaviour
     public TMP_Text extraInfoText;
     public TMP_Text nextButtonText;
 
-    // Suppression des références directes aux Panels UI (gérées par NavigationManager)
-
     private int currentIndex = 0;
     private List<QuestionData> currentDeck = new List<QuestionData>();
     private string currentHiddenInfo = "";
@@ -29,7 +27,6 @@ public class GameplayManager : MonoBehaviour
     {
         currentDeck = new List<QuestionData>(deck);
         currentIndex = 0;
-
         DisplayQuestion();
     }
 
@@ -37,8 +34,19 @@ public class GameplayManager : MonoBehaviour
     {
         QuestionData q = currentDeck[currentIndex];
 
+        // --- GESTION DES OPTIONS (SettingsManager) ---
+        if (SettingsManager.Instance != null)
+        {
+            // Cacher/Afficher les gorgées selon le Toggle
+            sipsDisplay.gameObject.SetActive(SettingsManager.Instance.showSips);
+            
+            // Faire vibrer le téléphone à chaque nouvelle question
+            SettingsManager.Instance.TriggerVibration();
+        }
+
         titleText.text = q.gameType;
         sipsDisplay.text = q.sips;
+
         float progress = (float)(currentIndex + 1) / currentDeck.Count;
         questionSlider.value = progress;
 
@@ -97,7 +105,6 @@ public class GameplayManager : MonoBehaviour
         }
         else if (mode.Contains("action") || mode.Contains("vérité") || mode.Contains("culture") || mode.Contains("qui est qui") || mode.Contains("mytho"))
         {
-            // On vérifie si la liste contient des joueurs
             if (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
             {
                 string p = GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)];
@@ -105,11 +112,8 @@ public class GameplayManager : MonoBehaviour
             }
             else
             {
-                // Message de secours pour éviter le crash
                 playerText.text = "C'est au tour de : <color=#780000>Tout le monde</color>";
-                Debug.LogWarning("Attention : La liste des joueurs est vide dans le GameManager !");
             }
-
             playerText.gameObject.SetActive(true);
         }
         else
@@ -174,16 +178,12 @@ public class GameplayManager : MonoBehaviour
         }
         else
         {
-            // PLUS DE ReturnToMenu() ici, on affiche la fin !
             NavigationManager.Instance.OpenEndMenu();
         }
     }
 
-    // --- LE NETTOYAGE EST ICI ---
     public void ReturnToMenu()
     {
-        // Au lieu de manipuler les SetActive, on demande au manager
-        // de vider la pile et de revenir à l'accueil
         NavigationManager.Instance.OpenStartMenu();
     }
 }
