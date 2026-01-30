@@ -8,91 +8,97 @@ public class LevelManager : MonoBehaviour
     [Header("Données de jeu")]
     public List<QuestionData> gameSessionDeck = new List<QuestionData>();
 
-    void Awake() { Instance = this; }
+    void Awake() 
+    { 
+        if (Instance == null) Instance = this; 
+    }
 
     public void PrepareGame()
     {
         gameSessionDeck.Clear();
         
-        // --- 1. SÉLECTION ET PRÉPARATION DU POOL ---
+        // 1. Récupération des réglages actuels
         string selectedGame = GameManager.Instance.selectedGameMode.Trim();
-        string selectedGameLower = selectedGame.ToLower();
-
         string targetDiff = GameManager.Instance.selectedDifficulty.ToLower().Trim();
         int targetCount = GameManager.Instance.questionCount;
+        
+        // Vérifie si l'option "Mes questions uniquement" est cochée dans les paramètres
+        bool onlyCustom = SettingsManager.Instance != null && SettingsManager.Instance.onlyCustomQuestions;
 
-        List<QuestionData> masterPool = new List<QuestionData>();
+        // 2. Récupération du pool global (Google Sheets + JSON injecté)
+        List<QuestionData> masterPool = GetMasterPool(selectedGame);
 
-        if (selectedGameLower.Contains("mixe"))
+        if (masterPool == null || masterPool.Count == 0)
         {
-            foreach (var gameEntry in GoogleSheetLoader.Instance.gameDatabase)
-            {
-                string categoryNameLower = gameEntry.Key.ToLower();
-                if (categoryNameLower.Contains("mixe")) continue;
-                if (categoryNameLower.Contains("événement") || categoryNameLower.Contains("évènement")) continue;
-                masterPool.AddRange(gameEntry.Value);
-            }
-        }
-        else
-        {
-            foreach (var key in GoogleSheetLoader.Instance.gameDatabase.Keys)
-            {
-                if (key.ToLower() == selectedGameLower)
-                {
-                    masterPool = new List<QuestionData>(GoogleSheetLoader.Instance.gameDatabase[key]);
-                    break;
-                }
-            }
+            Debug.LogError("MasterPool vide pour le jeu : " + selectedGame);
+            return;
         }
 
-        if (masterPool.Count == 0) return;
-
-        // --- 2. FILTRAGE PAR DIFFICULTÉ ET OPTIONS (SETTINGS) ---
-        List<QuestionData> filteredList = new List<QuestionData>();
-
-        // Logique Toggle "Seulement mes questions"
-        if (SettingsManager.Instance != null && SettingsManager.Instance.onlyCustomQuestions)
+        // 3. FILTRAGE INTELLIGENT
+        List<QuestionData> filteredList = masterPool.FindAll(q => 
         {
-            filteredList = masterPool.FindAll(q => q.difficulty.ToLower().Trim() == "custom");
+            // --- A. FILTRE "MES QUESTIONS UNIQUEMENT" ---
+            // On vérifie si la difficulté contient le tag "custom" (ajouté par le Loader lors de l'injection du JSON)
+            bool isCustom = q.difficulty.ToLower().Contains("custom");
             
-            // Si aucune question custom n'est trouvée, on reprend le pool normal
-            if (filteredList.Count == 0)
-            {
-                Debug.Log("Aucune question 'CUSTOM' trouvée, chargement du deck classique.");
-                filteredList = GetDefaultFilteredList(masterPool, targetDiff);
-            }
-        }
-        else
+            if (onlyCustom && !isCustom) return false;
+
+            // --- B. FILTRE DE DIFFICULTÉ ---
+            // Si le joueur a choisi "Aléatoire", on accepte tout (qui a passé le filtre A)
+            if (targetDiff == "aléatoire" || string.IsNullOrEmpty(targetDiff)) 
+                return true;
+
+            // On compare la difficulté en ignorant le tag "(custom)" pour que les questions perso
+            // soient filtrées comme les questions normales (ex: "facile (custom)" devient "facile")
+            string cleanQDiff = q.difficulty.ToLower().Replace("(custom)", "").Trim();
+            
+            return cleanQDiff == targetDiff;
+        });
+
+        // 4. SÉCURITÉ : SI RIEN NE CORRESPOND (Pool vide après filtrage)
+        if (filteredList.Count == 0)
         {
-            filteredList = GetDefaultFilteredList(masterPool, targetDiff);
+            Debug.LogWarning("Aucune question trouvée pour " + targetDiff + ". On prend le pool par défaut.");
+            filteredList = new List<QuestionData>(masterPool);
         }
 
+        // 5. CRÉATION DU DECK FINAL
         Shuffle(filteredList);
-
-        // --- 3. CRÉATION DU DECK FINAL ---
-        gameSessionDeck = new List<QuestionData>();
+        
+        // On remplit le deck selon le nombre de questions demandé
         for (int k = 0; k < targetCount; k++)
         {
             gameSessionDeck.Add(filteredList[k % filteredList.Count]);
         }
 
+        // 6. AJOUT DES ÉVÉNEMENTS ET LANCEMENT
         AddEventsToDeck();
         GameplayManager.Instance.StartGameSession(gameSessionDeck);
         NavigationManager.Instance.OpenGamePanel();
     }
 
-    // Extraction de la logique de filtrage classique pour plus de clarté
-    private List<QuestionData> GetDefaultFilteredList(List<QuestionData> pool, string diff)
+    private List<QuestionData> GetMasterPool(string gameName)
     {
-        if (diff == "aléatoire" || string.IsNullOrEmpty(diff))
+        string lowerName = gameName.ToLower();
+        List<QuestionData> pool = new List<QuestionData>();
+
+        // Logique spéciale pour le mode "On Mixe"
+        if (lowerName.Contains("mixe"))
         {
-            return new List<QuestionData>(pool);
+            foreach (var entry in GoogleSheetLoader.Instance.gameDatabase)
+            {
+                // On n'ajoute pas les événements dans le pool de questions de base
+                if (entry.Key.ToLower().Contains("événement") || entry.Key.ToLower().Contains("évènement")) 
+                    continue;
+                
+                pool.AddRange(entry.Value);
+            }
         }
-        else
+        else if (GoogleSheetLoader.Instance.gameDatabase.ContainsKey(gameName))
         {
-            List<QuestionData> list = pool.FindAll(q => q.difficulty.ToLower().Trim() == diff);
-            return (list.Count == 0) ? new List<QuestionData>(pool) : list;
+            pool = new List<QuestionData>(GoogleSheetLoader.Instance.gameDatabase[gameName]);
         }
+        return pool;
     }
 
     private void AddEventsToDeck()
@@ -112,12 +118,14 @@ public class LevelManager : MonoBehaviour
         {
             Shuffle(eventList);
             int eventIdx = 0;
+            // Premier événement entre la 4ème et 6ème position
             int currentInsertIndex = Random.Range(4, 6);
 
             while (currentInsertIndex < gameSessionDeck.Count)
             {
                 gameSessionDeck.Insert(currentInsertIndex, eventList[eventIdx % eventList.Count]);
                 eventIdx++;
+                // Événement suivant toutes les 5 à 7 questions
                 currentInsertIndex += Random.Range(5, 7);
             }
         }

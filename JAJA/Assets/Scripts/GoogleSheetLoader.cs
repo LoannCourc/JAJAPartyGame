@@ -71,7 +71,7 @@ public class GoogleSheetLoader : MonoBehaviour
                 QuestionData convertedQ = new QuestionData();
                 convertedQ.gameType = q.gameType;
                 convertedQ.sips = q.sips.ToString();
-                convertedQ.difficulty = "custom";
+                convertedQ.difficulty = q.difficulty + " (custom)";
 
                 if (q.gameType.ToLower().Contains("préfère") && q.text.Contains(" | "))
                 {
