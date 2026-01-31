@@ -39,9 +39,6 @@ public class GameplayManager : MonoBehaviour
         {
             // Cacher/Afficher les gorgées selon le Toggle
             sipsDisplay.gameObject.SetActive(SettingsManager.Instance.showSips);
-            
-            // Faire vibrer le téléphone à chaque nouvelle question
-            SettingsManager.Instance.TriggerVibration();
         }
 
         titleText.text = q.gameType;
