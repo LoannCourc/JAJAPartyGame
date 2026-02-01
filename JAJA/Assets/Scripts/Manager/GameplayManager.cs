@@ -3,6 +3,13 @@ using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
+[System.Serializable]
+public class DifficultyIcon
+{
+    public string difficultyName;
+    public Sprite iconSprite;
+}
+
 public class GameplayManager : MonoBehaviour
 {
     public static GameplayManager Instance;
@@ -10,12 +17,17 @@ public class GameplayManager : MonoBehaviour
     [Header("UI References")]
     public TMP_Text titleText;
     public TMP_Text sipsDisplay;
+    public Image difficultyIconImage;
     public Slider questionSlider;
     public TMP_Text questionText;
     public TMP_Text playerText;
     public GameObject revealButton;
     public TMP_Text extraInfoText;
     public TMP_Text nextButtonText;
+
+    [Header("Configuration des Icônes")]
+    [SerializeField] private List<DifficultyIcon> difficultyIcons = new List<DifficultyIcon>();
+    [SerializeField] private Sprite defaultIcon;
 
     private int currentIndex = 0;
     private List<QuestionData> currentDeck = new List<QuestionData>();
@@ -30,14 +42,23 @@ public class GameplayManager : MonoBehaviour
         DisplayQuestion();
     }
 
+    private string CleanText(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return "";
+        // Remplace les doubles guillemets du CSV par des guillemets simples
+        return input.Replace("\"\"", "\"");
+    }
+
     public void DisplayQuestion()
     {
+        if (currentDeck == null || currentDeck.Count == 0) return;
+
         QuestionData q = currentDeck[currentIndex];
 
-        // --- GESTION DES OPTIONS (SettingsManager) ---
+        UpdateDifficultyIcon(q.difficulty);
+
         if (SettingsManager.Instance != null)
         {
-            // Cacher/Afficher les gorgées selon le Toggle
             sipsDisplay.gameObject.SetActive(SettingsManager.Instance.showSips);
         }
 
@@ -52,52 +73,74 @@ public class GameplayManager : MonoBehaviour
         currentHiddenInfo = "";
 
         string mode = q.gameType.ToLower();
+        string cleanedQuestion = CleanText(q.text);
 
-        // --- LOGIQUE D'AFFICHAGE ---
         if (mode.Contains("préfère"))
         {
-            questionText.text = $"{q.option1}\n<color=#780000><size=80%>— OU —</size></color>\n{q.option2}";
+            questionText.text = $"{CleanText(q.option1)}\n<color=#780000><size=80%>— OU —</size></color>\n{CleanText(q.option2)}";
         }
         else if (mode.Contains("qui est qui"))
         {
-            questionText.text = "<align=left>• " + q.text.Replace("\n", "\n• ") + "</align>";
+            questionText.text = "<align=left>• " + cleanedQuestion.Replace("\n", "\n• ") + "</align>";
         }
         else if (mode.Contains("mytho"))
         {
             revealButton.SetActive(true);
             revealButton.GetComponentInChildren<TMP_Text>().text = "Afficher la réponse";
-            questionText.text = q.text;
+            questionText.text = cleanedQuestion;
 
             int chance = Random.Range(0, 2);
-            if (chance == 0) currentHiddenInfo = q.option1;
+            if (chance == 0) currentHiddenInfo = CleanText(q.option1);
             else currentHiddenInfo = "<color=#780000>Invente une réponse !</color>";
         }
         else if (mode.Contains("culture"))
         {
             revealButton.SetActive(true);
             revealButton.GetComponentInChildren<TMP_Text>().text = "Voir la réponse";
-            questionText.text = q.text;
+            questionText.text = cleanedQuestion;
         }
         else if (mode.Contains("bac"))
         {
-            questionText.text = q.text;
+            questionText.text = cleanedQuestion;
             revealButton.SetActive(true);
             revealButton.GetComponentInChildren<TMP_Text>().text = "Afficher la lettre";
             currentHiddenInfo = GetRandomLetter();
         }
         else
         {
-            questionText.text = q.text;
+            questionText.text = cleanedQuestion;
         }
 
         UpdatePlayerTurn(mode, q);
+    }
+
+    private void UpdateDifficultyIcon(string difficulty)
+    {
+        if (difficultyIconImage == null) return;
+
+        DifficultyIcon iconData = difficultyIcons.Find(x => x.difficultyName.Trim().ToLower() == difficulty.Trim().ToLower());
+
+        if (iconData != null && iconData.iconSprite != null)
+        {
+            difficultyIconImage.sprite = iconData.iconSprite;
+            difficultyIconImage.gameObject.SetActive(true);
+        }
+        else if (defaultIcon != null)
+        {
+            difficultyIconImage.sprite = defaultIcon;
+            difficultyIconImage.gameObject.SetActive(true);
+        }
+        else
+        {
+            difficultyIconImage.gameObject.SetActive(false);
+        }
     }
 
     void UpdatePlayerTurn(string mode, QuestionData q)
     {
         if (mode.Contains("événement") || mode.Contains("évènement"))
         {
-            playerText.text = "<color=#780000>" + q.option1 + "</color>";
+            playerText.text = "<color=#780000>" + CleanText(q.option1) + "</color>";
             playerText.gameObject.SetActive(true);
         }
         else if (mode.Contains("action") || mode.Contains("vérité") || mode.Contains("culture") || mode.Contains("qui est qui") || mode.Contains("mytho"))
@@ -129,12 +172,12 @@ public class GameplayManager : MonoBehaviour
             QuestionData q = currentDeck[currentIndex];
             if (buttonText.text == "Voir la réponse")
             {
-                questionText.text = "<color=#780000>RÉPONSE :</color>\n\n" + q.option1;
+                questionText.text = "<color=#780000>RÉPONSE :</color>\n\n" + CleanText(q.option1);
                 buttonText.text = "Voir la question";
             }
             else
             {
-                questionText.text = q.text;
+                questionText.text = CleanText(q.text);
                 buttonText.text = "Voir la réponse";
             }
         }
@@ -147,7 +190,7 @@ public class GameplayManager : MonoBehaviour
             }
             else
             {
-                questionText.text = currentDeck[currentIndex].text;
+                questionText.text = CleanText(currentDeck[currentIndex].text);
                 buttonText.text = "Afficher la réponse";
             }
         }

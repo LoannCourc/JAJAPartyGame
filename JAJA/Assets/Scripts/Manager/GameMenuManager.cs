@@ -126,6 +126,7 @@ public class GameMenuManager : MonoBehaviour
         btn.onClick.AddListener(() =>
         {
             GameManager.Instance.selectedGameMode = gameName;
+            GameManager.Instance.SelectGame(gameName);
             if (selectedGameTitle != null) selectedGameTitle.text = gameName;
             NavigationManager.Instance.OpenFilters();
         });

@@ -44,3 +44,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e5a9e3e1b1cc24aae163d8932f56d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameplayManager
+  titleText: {fileID: 0}
+  sipsDisplay: {fileID: 0}
+  difficultyIconImage: {fileID: 0}
+  questionSlider: {fileID: 0}
+  questionText: {fileID: 0}
+  playerText: {fileID: 0}
+  revealButton: {fileID: 0}
+  extraInfoText: {fileID: 0}
+  nextButtonText: {fileID: 0}
+  difficultyIcons:
+  - difficultyName: "Al\xE9atoire"
+    iconSprite: {fileID: 21300000, guid: e6c12f94e98d11b4683fce7345f7465f, type: 3}
+  - difficultyName: Facile
+    iconSprite: {fileID: 21300000, guid: 74a06c984763cfe4d8ffeb9b89c9486e, type: 3}
+  - difficultyName: Difficile
+    iconSprite: {fileID: 21300000, guid: c47f9575ecc57a0459ba12cb2292f2b3, type: 3}
+  - difficultyName: Hot
+    iconSprite: {fileID: 21300000, guid: c520533bcffcf144a95b7f75f0b8a648, type: 3}
+  - difficultyName: Moyen
+    iconSprite: {fileID: 21300000, guid: 004dd73e184ee5b41b75cdaed790515f, type: 3}
+  - difficultyName: Unique
+    iconSprite: {fileID: 21300000, guid: e6c12f94e98d11b4683fce7345f7465f, type: 3}
+  defaultIcon: {fileID: 21300000, guid: e6c12f94e98d11b4683fce7345f7465f, type: 3}

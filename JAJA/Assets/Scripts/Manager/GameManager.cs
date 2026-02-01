@@ -1,26 +1,37 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement; // Nécessaire pour changer d'écran
+using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    // Singleton pour accéder au GameManager depuis n'importe quel script
     public static GameManager Instance;
 
     [Header("Données de Session")]
-    public List<string> playerNames = new List<string>(); // Liste des noms [cite: 4, 17]
-    public string selectedGameMode; // Le jeu choisi (ex: "Petit bac") [cite: 21]
-    public string selectedDifficulty = "facile"; // Difficulté par défaut 
-    public int questionCount = 20; // Nombre de questions choisi 
+    public List<string> playerNames = new List<string>();
+    public string selectedGameMode;
+    public string selectedDifficulty = "Aléatoire";
+    public int questionCount = 20;
 
     [Header("UI Filtres")]
     public TMP_Text questionCountText;
+    [SerializeField] private TMP_Dropdown difficultyDropdown;
+    [SerializeField] private Image arrowIcon;
+
+    [Header("Configurations des Difficultés")]
+    // Groupe 1: Action ou Vérité, Je n'ai jamais, Le meilleur, Qui pourrait, Tu préfères, On mixe ?
+    [SerializeField] private List<string> diffsStandard = new List<string> { "Aléatoire", "Facile", "Difficile", "Hot" };
+
+    // Groupe 2: Enchères, Culture G, Petit bac
+    [SerializeField] private List<string> diffsAvancees = new List<string> { "Aléatoire", "Facile", "Moyen", "Difficile" };
+
+    // Groupe 3: Mytho ou réalité, Qui est qui ?
+    [SerializeField] private List<string> diffsUnique = new List<string> { "Unique" };
 
     private void Awake()
     {
-        // Empêche les doublons et garde le script actif entre les scènes
+        Application.targetFrameRate = 60;
         if (Instance == null)
         {
             Instance = this;
@@ -35,8 +46,7 @@ public class GameManager : MonoBehaviour
     // --- ÉCRAN 1 : GESTION DES JOUEURS ---
     public void AddPlayer(string name)
     {
-        SettingsManager.Instance.TriggerVibration();
-        // Limite à 10 joueurs comme indiqué sur ton screenshot 
+        // SettingsManager.Instance.TriggerVibration(); // Commenté si non présent
         if (playerNames.Count < 10 && !string.IsNullOrEmpty(name))
         {
             playerNames.Add(name);
@@ -55,35 +65,83 @@ public class GameManager : MonoBehaviour
     // --- ÉCRAN 2 : SÉLECTION DU JEU ---
     public void SelectGame(string gameName)
     {
-        selectedGameMode = gameName; // [cite: 21]
+        selectedGameMode = gameName;
         Debug.Log("Jeu sélectionné : " + gameName);
-        // Ici, tu ajouteras le code pour charger la scène des paramètres
+        UpdateDifficultyDropdown(gameName);
     }
 
-    // À ajouter dans votre GameManager.cs
+    // --- ÉCRAN 3 : FILTRES ---
+    public void UpdateDifficultyDropdown(string gameName)
+    {
+        if (difficultyDropdown == null) return;
+
+        difficultyDropdown.ClearOptions();
+        List<string> optionsAAfficher;
+        bool isUnique = false;
+
+        // Logique d'attribution des listes de difficultés
+        if (gameName == "Enchères" || gameName == "Culture G" || gameName == "Petit bac")
+        {
+            optionsAAfficher = diffsAvancees;
+        }
+        else if (gameName == "Mytho ou réalité" || gameName == "Qui est qui ?")
+        {
+            optionsAAfficher = diffsUnique;
+            isUnique = true;
+        }
+        else
+        {
+            // Par défaut pour Action/Vérité, Je n'ai jamais, etc. ET "On mixe ?"
+            optionsAAfficher = diffsStandard;
+        }
+
+        difficultyDropdown.AddOptions(optionsAAfficher);
+
+        difficultyDropdown.value = 0;
+        selectedDifficulty = optionsAAfficher[0];
+        difficultyDropdown.RefreshShownValue();
+
+        difficultyDropdown.interactable = !isUnique;
+
+        // On cache ou affiche la flèche
+        if (arrowIcon != null)
+        {
+            arrowIcon.enabled = !isUnique;
+        }
+    }
+
     public void SetDifficulty(int index)
     {
-        // Récupère le texte de l'option sélectionnée dans le Dropdown
-        // Assurez-vous que les options du Dropdown correspondent EXACTEMENT à : Facile, Difficile, Hot, Aléatoire
-        string[] options = { "Aléatoire", "Facile", "Difficile", "Hot" };
-        selectedDifficulty = options[index];
-        Debug.Log("Difficulté mise à jour : " + selectedDifficulty);
+        if (difficultyDropdown != null)
+        {
+            selectedDifficulty = difficultyDropdown.options[index].text;
+            Debug.Log("Difficulté choisie : " + selectedDifficulty);
+        }
     }
 
     public void SetQuestionCount(float value)
     {
-        // 1. Calcul de l'arrondi au multiple de 5 (le "Snap")
-        // On divise par 5, on arrondit à l'entier, et on multiplie par 5
         int snappedValue = Mathf.RoundToInt(value) * 5;
-
-        // 2. Mise à jour de la variable de jeu
         questionCount = snappedValue;
 
-        // 3. Mise à jour du texte affiché
         if (questionCountText != null)
         {
             questionCountText.text = snappedValue.ToString();
         }
     }
 
+    // ASTUCE : Utilise cette fonction quand tu chargeras tes questions CSV
+    public string GetDifficultyMapping(string gameInsideMix)
+    {
+        // Si on est dans "On mixe ?", on adapte la difficulté sélectionnée pour les jeux spécifiques
+        if (selectedGameMode == "On mixe ?")
+        {
+            if (gameInsideMix == "Enchères" || gameInsideMix == "Culture G" || gameInsideMix == "Petit bac")
+            {
+                if (selectedDifficulty == "Difficile") return "Moyen";
+                if (selectedDifficulty == "Hot") return "Difficile";
+            }
+        }
+        return selectedDifficulty;
+    }
 }
