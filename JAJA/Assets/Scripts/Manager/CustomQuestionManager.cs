@@ -70,11 +70,12 @@ public class CustomQuestionManager : MonoBehaviour
     {
         if (!PremiumManager.Instance.IsUserPremium && customData.questions.Count >= PremiumManager.Instance.maxFreeCustomQuestions)
         {
-            ShowPopFeedback("Limite atteinte (3) ! Passez Premium.", Color.red);
+            ShowPopFeedback("Limite atteinte", Color.red);
             return;
         }
 
-        CustomQuestion newQ = new CustomQuestion {
+        CustomQuestion newQ = new CustomQuestion
+        {
             gameType = gameTypeDropdown.options[gameTypeDropdown.value].text,
             difficulty = difficultyDropdown.options[difficultyDropdown.value].text,
             sips = (int)sipsSlider.value
@@ -90,7 +91,7 @@ public class CustomQuestionManager : MonoBehaviour
         customData.questions.Add(newQ);
         SaveToFile();
         GoogleSheetLoader.Instance?.LoadLocalCustomQuestions();
-        
+
         ShowPopFeedback("Ajoutée !", Color.white);
         ClearAllFields();
         RefreshListView();
@@ -99,15 +100,17 @@ public class CustomQuestionManager : MonoBehaviour
     private void ShowPopFeedback(string message, Color color)
     {
         if (feedbackText == null) return;
-        
+
         feedbackText.DOKill(); // Stop animations en cours
         feedbackText.gameObject.SetActive(true);
         feedbackText.text = message;
         feedbackText.color = color;
         feedbackText.transform.localScale = Vector3.zero;
 
-        feedbackText.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).OnComplete(() => {
-            feedbackText.transform.DOScale(0f, 0.3f).SetDelay(1.5f).OnComplete(() => {
+        feedbackText.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).OnComplete(() =>
+        {
+            feedbackText.transform.DOScale(0f, 0.3f).SetDelay(1.5f).OnComplete(() =>
+            {
                 feedbackText.gameObject.SetActive(false);
             });
         });
@@ -120,7 +123,22 @@ public class CustomQuestionManager : MonoBehaviour
         inputWho1.text = ""; inputWho2.text = ""; inputWho3.text = ""; inputWho4.text = "";
     }
 
-    public void UpdateSipsDisplay(float value) => sipsValueText.text = Mathf.RoundToInt(value).ToString();
+   public void UpdateSipsDisplay(float value)
+{
+    int sips = Mathf.RoundToInt(value);
+    
+    // Gestion du pluriel
+    string label = sips > 1 ? "Gorgées : " : "Gorgée : ";
+    sipsValueText.text = label + sips;
+
+    // --- ANIMATION DOTWEEN ---
+    // On arrête l'animation précédente pour éviter les bugs visuels
+    sipsValueText.transform.DOKill();
+    // Reset de l'échelle pour éviter que le texte ne reste petit ou grand
+    sipsValueText.transform.localScale = Vector3.one; 
+    // Petit rebond d'échelle (1.1x) pendant 0.15 seconde
+    sipsValueText.transform.DOPunchScale(new Vector3(0.1f, 0.1f, 0), 0.15f, 10, 1);
+}
     private void SaveToFile() => File.WriteAllText(filePath, JsonUtility.ToJson(customData, true));
     private void LoadQuestions() { if (File.Exists(filePath)) { customData = JsonUtility.FromJson<CustomQuestionList>(File.ReadAllText(filePath)); RefreshListView(); } }
 
@@ -131,7 +149,8 @@ public class CustomQuestionManager : MonoBehaviour
         {
             GameObject item = Instantiate(questionPrefab, listContent);
             TMP_Text[] texts = item.GetComponentsInChildren<TMP_Text>();
-            foreach (var t in texts) {
+            foreach (var t in texts)
+            {
                 if (t.name == "QuestionText") t.text = q.text;
                 if (t.name == "GameTypeText") t.text = $"{q.gameType} ({q.difficulty})";
             }

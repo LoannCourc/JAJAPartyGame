@@ -46,5 +46,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   playerNames: []
   selectedGameMode: 
-  selectedDifficulty: facile
-  questionCount: 20
+  selectedDifficulty: "al\xE9atoire"
+  questionCount: 5
+  maxPlayers: 12
+  questionCountText: {fileID: 0}
+  difficultyDropdown: {fileID: 0}
+  arrowIcon: {fileID: 0}
+  diffsStandard:
+  - "Al\xE9atoire"
+  - Facile
+  - Difficile
+  - Hot
+  diffsAvancees:
+  - "Al\xE9atoire"
+  - Facile
+  - Moyen
+  - Difficile
+  diffsUnique:
+  - Unique

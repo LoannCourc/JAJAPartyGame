@@ -15,6 +15,11 @@ public class SettingsManager : MonoBehaviour
     public Toggle customToggle;
     public Toggle vibroToggle;
 
+    [Header("Liens Légaux")]
+    // Tu peux modifier ces liens directement dans l'Inspector Unity
+    public string privacyPolicyURL = "https://doc-hosting.flycricket.io/jaja-jeux-de-soiree-privacy-policy/ae8ffeef-9381-43fd-b23d-89bc45b80a8e/privacy";
+    public string termsOfUseURL = "https://doc-hosting.flycricket.io/jaja-jeux-de-soiree-terms-of-use/fdbc55a6-1f64-4c58-b808-72d4f0a23583/terms";
+
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
@@ -38,7 +43,6 @@ public class SettingsManager : MonoBehaviour
         onlyCustomQuestions = PlayerPrefs.GetInt("OnlyCustom", 0) == 1;
         vibrationsEnabled = PlayerPrefs.GetInt("VibroEnabled", 1) == 1;
 
-        // Si on a lié les toggles dans l'inspector, on met à jour leur visuel
         if (sipsToggle) sipsToggle.isOn = showSips;
         if (customToggle) customToggle.isOn = onlyCustomQuestions;
         if (vibroToggle) vibroToggle.isOn = vibrationsEnabled;
@@ -48,6 +52,23 @@ public class SettingsManager : MonoBehaviour
     public void ToggleSips(bool value) { showSips = value; SaveSettings(); }
     public void ToggleCustom(bool value) { onlyCustomQuestions = value; SaveSettings(); }
     public void ToggleVibro(bool value) { vibrationsEnabled = value; SaveSettings(); }
+
+    // Nouvelles fonctions pour ouvrir les liens
+    public void OpenPrivacyPolicy()
+    {
+        if (!string.IsNullOrEmpty(privacyPolicyURL))
+        {
+            Application.OpenURL(privacyPolicyURL);
+        }
+    }
+
+    public void OpenTermsOfUse()
+    {
+        if (!string.IsNullOrEmpty(termsOfUseURL))
+        {
+            Application.OpenURL(termsOfUseURL);
+        }
+    }
 
     // Utilitaire pour la vibration
     public void TriggerVibration()
