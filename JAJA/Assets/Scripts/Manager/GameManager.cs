@@ -12,17 +12,12 @@ public class GameManager : MonoBehaviour
     public string selectedGameMode;
     public string selectedDifficulty = "Aléatoire";
     public int questionCount = 20;
-    public int maxPlayers;
+    public int maxPlayers = 10; // Assure-toi que c'est bien à 10
 
     [Header("UI Filtres")]
     public TMP_Text questionCountText;
     [SerializeField] private TMP_Dropdown difficultyDropdown;
     [SerializeField] private Image arrowIcon;
-
-    [Header("Configurations des Difficultés")]
-    [SerializeField] private List<string> diffsStandard = new List<string> { "Aléatoire", "Facile", "Difficile", "Hot" };
-    [SerializeField] private List<string> diffsAvancees = new List<string> { "Aléatoire", "Facile", "Moyen", "Difficile" };
-    [SerializeField] private List<string> diffsUnique = new List<string> { "Unique" };
 
     private void Awake()
     {
@@ -31,7 +26,7 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            LoadPlayersFromDisk(); // Chargement au démarrage
+            LoadPlayersFromDisk(); 
         }
         else
         {
@@ -60,26 +55,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Permet de synchroniser la liste d'un coup (utile pour suppression ou fin de saisie)
+    public void SyncFinalList(List<string> newList)
+    {
+        playerNames = new List<string>(newList);
+        SavePlayersToDisk();
+    }
+
     // --- GESTION DES JOUEURS ---
     public void AddPlayer(string name)
     {
         if (playerNames.Count < maxPlayers && !string.IsNullOrEmpty(name))
         {
-            playerNames.Add(name);
-            SavePlayersToDisk();
+            if(!playerNames.Contains(name)) // Sécurité doublon
+            {
+                playerNames.Add(name);
+                SavePlayersToDisk();
+            }
         }
     }
 
-    public void RemovePlayer(int index)
-    {
-        if (index >= 0 && index < playerNames.Count)
-        {
-            playerNames.RemoveAt(index);
-            SavePlayersToDisk();
-        }
-    }
-
-    // --- LOGIQUE DE JEU & UI ---
+    // --- LOGIQUE DE JEU & UI (Le reste du code est identique) ---
     public void SelectGame(string gameName)
     {
         selectedGameMode = gameName;
@@ -89,27 +85,26 @@ public class GameManager : MonoBehaviour
     public void UpdateDifficultyDropdown(string gameName)
     {
         if (difficultyDropdown == null) return;
-
         difficultyDropdown.ClearOptions();
         List<string> optionsAAfficher;
         bool isUnique = false;
 
+        // Listes internes pour éviter les erreurs de référence
         if (gameName == "Enchères" || gameName == "Culture G" || gameName == "Petit bac")
-            optionsAAfficher = diffsAvancees;
+            optionsAAfficher = new List<string> { "Aléatoire", "Facile", "Moyen", "Difficile" };
         else if (gameName == "Mytho ou réalité" || gameName == "Qui est qui ?")
         {
-            optionsAAfficher = diffsUnique;
+            optionsAAfficher = new List<string> { "Unique" };
             isUnique = true;
         }
         else
-            optionsAAfficher = diffsStandard;
+            optionsAAfficher = new List<string> { "Aléatoire", "Facile", "Difficile", "Hot" };
 
         difficultyDropdown.AddOptions(optionsAAfficher);
         difficultyDropdown.value = 0;
         selectedDifficulty = optionsAAfficher[0];
         difficultyDropdown.RefreshShownValue();
         difficultyDropdown.interactable = !isUnique;
-
         if (arrowIcon != null) arrowIcon.enabled = !isUnique;
     }
 

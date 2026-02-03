@@ -48,19 +48,7 @@ MonoBehaviour:
   selectedGameMode: 
   selectedDifficulty: "al\xE9atoire"
   questionCount: 5
-  maxPlayers: 12
+  maxPlayers: 10
   questionCountText: {fileID: 0}
   difficultyDropdown: {fileID: 0}
   arrowIcon: {fileID: 0}
-  diffsStandard:
-  - "Al\xE9atoire"
-  - Facile
-  - Difficile
-  - Hot
-  diffsAvancees:
-  - "Al\xE9atoire"
-  - Facile
-  - Moyen
-  - Difficile
-  diffsUnique:
-  - Unique

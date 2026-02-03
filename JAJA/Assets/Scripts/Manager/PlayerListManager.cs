@@ -1,19 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMP_InputField = TMPro.TMP_InputField; // Sécurité pour TMP
+using TMP_InputField = TMPro.TMP_InputField; 
 using TMP_Text = TMPro.TMP_Text;
-using DG.Tweening; // Importation obligatoire
+using DG.Tweening; 
 using System.Collections.Generic;
 
 public class PlayerListManager : MonoBehaviour
 {
     [Header("Saisie Fixe")]
-    public TMP_InputField mainInputField; // L'unique champ qui ne bouge pas
-    public Button addBtn; // Ton bouton avec le "+"
+    public TMP_InputField mainInputField; 
+    public Button addBtn; 
 
     [Header("Liste Dynamique")]
-    public GameObject playerRowPrefab; // Le prefab beige avec le texte et le bouton "-"
-    public Transform container; // Le "Content" de ta ScrollView
+    public GameObject playerRowPrefab; 
+    public Transform container; 
     public Button nextButton;
 
     public GameMenuManager gameMenuManager;
@@ -24,50 +24,58 @@ public class PlayerListManager : MonoBehaviour
 
     void Start()
     {
-        // Nettoyage au lancement
+        // 1. Nettoyage visuel au lancement
         foreach (Transform child in container) Destroy(child.gameObject);
+        activeRows.Clear();
+        playerNames.Clear();
+
+        // 2. CHARGEMENT DES DONNÉES SAUVEGARDÉES
+        if (GameManager.Instance != null && GameManager.Instance.playerNames.Count > 0)
+        {
+            // On récupère la liste du GameManager et on recrée les lignes
+            foreach (string name in GameManager.Instance.playerNames)
+            {
+                AddPlayerVisually(name);
+            }
+        }
 
         mainInputField.text = "";
         RefreshUI();
 
-        // Liaison du bouton "+" principal
         addBtn.onClick.RemoveAllListeners();
         addBtn.onClick.AddListener(AddPlayerFromInput);
     }
 
-    // Fonction déclenchée par le bouton "+" principal
     public void AddPlayerFromInput()
     {
         string nameToAdd = mainInputField.text.Trim();
 
         if (string.IsNullOrEmpty(nameToAdd) || playerNames.Contains(nameToAdd))
         {
-            // Petit tremblement horizontal (Shake)
             mainInputField.transform.DOShakePosition(0.4f, strength: new Vector3(10, 0, 0), vibrato: 10);
             return;
         }
 
-        if (string.IsNullOrEmpty(nameToAdd)) return;
         if (playerNames.Count >= MAX_PLAYERS) return;
-        if (playerNames.Contains(nameToAdd)) return; // Évite les doublons
 
-        AddPlayer(nameToAdd);
+        // On ajoute au visuel ET on demande au GameManager de sauvegarder
+        AddPlayerVisually(nameToAdd);
+        GameManager.Instance.AddPlayer(nameToAdd); 
 
-        mainInputField.text = ""; // Vide le champ
-        mainInputField.ActivateInputField(); // Garde le focus pour taper le suivant
+        mainInputField.text = ""; 
+        mainInputField.ActivateInputField(); 
     }
 
-    private void AddPlayer(string name)
+    // Cette fonction s'occupe uniquement de la partie visuelle (Prefab + Animation)
+    private void AddPlayerVisually(string name)
     {
         playerNames.Add(name);
 
         GameObject newRow = Instantiate(playerRowPrefab, container);
         activeRows.Add(name, newRow);
 
-        // --- ANIMATION D'APPARITION ---
-        newRow.transform.localScale = Vector3.zero; // Sécurité : repart de zéro
+        newRow.transform.localScale = Vector3.zero; 
         newRow.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
-        // ------------------------------
 
         newRow.GetComponentInChildren<TMP_Text>().text = name;
 
@@ -85,44 +93,33 @@ public class PlayerListManager : MonoBehaviour
         if (playerNames.Contains(name))
         {
             playerNames.Remove(name);
+            
+            // On prévient le GameManager pour qu'il mette à jour le PlayerPrefs
+            GameManager.Instance.SyncFinalList(playerNames);
 
             GameObject rowToDestroy = activeRows[name];
-
-            // On retire l'entrée du dictionnaire avant de lancer l'anim
             activeRows.Remove(name);
 
-            // --- ANIMATION DE SORTIE ---
             if (rowToDestroy != null)
             {
                 rowToDestroy.transform.DOScale(Vector3.zero, 0.2f)
                     .SetEase(Ease.InBack)
                     .OnComplete(() => Destroy(rowToDestroy));
             }
-            // ---------------------------
         }
         RefreshUI();
     }
 
     private void RefreshUI()
     {
-
-
-        // Le bouton "Suivant" s'active si au moins 2 joueurs sont dans la liste
         nextButton.interactable = (playerNames.Count >= 2);
     }
+
     public void FinalizePlayers()
     {
-        GameManager.Instance.playerNames.Clear();
-        foreach (string name in playerNames)
-        {
-            GameManager.Instance.AddPlayer(name);
-        }
-
-        // --- ON REMPLACE LA NAVIGATION MANUELLE PAR CELLE-CI ---
-        // On demande au NavigationManager d'ouvrir le menu de sélection
+        // Synchronisation finale avant de lancer le jeu
+        GameManager.Instance.SyncFinalList(playerNames);
         NavigationManager.Instance.OpenGameSelection();
-
-        // On demande au manager des jeux de rafraîchir sa liste
         gameMenuManager.DisplayGames();
     }
 }
