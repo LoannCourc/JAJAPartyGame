@@ -1,26 +1,30 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using DG.Tweening;
 
 public class NavigationManager : MonoBehaviour
 {
     public static NavigationManager Instance;
 
     [Header("Panneaux")]
-    public GameObject startMenu;         // Ajout des joueurs
-    public GameObject settingsMenu;      // Options
-    public GameObject gameSelectionMenu; // Liste des jeux
-    public GameObject filterMenu;        // Filtres
-    public GameObject gamePanel;         // Gameplay (questions/gorgées)
-    public GameObject addQuestionMenu;   // Ajouter questions
-    public GameObject addedQuestionsListMenu; // Liste historique questions
+    public GameObject startMenu;
+    public GameObject settingsMenu;
+    public GameObject gameSelectionMenu;
+    public GameObject filterMenu;
+    public GameObject gamePanel;
+    public GameObject addQuestionMenu;
+    public GameObject addedQuestionsListMenu;
     public GameObject endMenu;
+
+    [Header("Animation Settings")]
+    public float panelPopDuration = 0.4f;
+    public Ease panelPopEase = Ease.OutBack;
 
     [Header("Effets")]
     public ParticleSystem confettiParticles;
     public ParticleSystem confettiParticlesTwo;
 
-    // La pile qui mémorise l'ordre d'ouverture des menus
     private Stack<GameObject> menuStack = new Stack<GameObject>();
     public event Action<GameObject> OnMenuOpened;
 
@@ -32,66 +36,86 @@ public class NavigationManager : MonoBehaviour
 
     void Start()
     {
-        // On initialise l'application sur le menu de départ
-        ShowMenu(startMenu, false); 
+        // Initialisation sans animation pour le premier écran
+        ShowMenu(startMenu, false, false);
     }
 
-    // Fonction universelle pour afficher un menu
-    // keepHistory = true permet de pouvoir revenir en arrière
-    public void ShowMenu(GameObject menuToShow, bool keepHistory = true)
+    public void ShowMenu(GameObject menuToShow, bool keepHistory = true, bool animate = true)
     {
         if (menuToShow == null) return;
 
-        // Si on veut pouvoir revenir en arrière, on sauvegarde le menu actuel
         if (keepHistory && menuStack.Count > 0)
         {
             menuStack.Peek().SetActive(false);
         }
         else
         {
-            HideAll(); // Sinon on nettoie tout
+            HideAll();
         }
 
         menuToShow.SetActive(true);
         menuStack.Push(menuToShow);
-        OnMenuOpened?.Invoke(menuToShow);
 
-        if (confettiParticles != null)
-    {
-        if (menuToShow == endMenu)
+        if (animate)
         {
-            confettiParticles.Play();
-            confettiParticlesTwo.Play();
+            menuToShow.transform.localScale = Vector3.zero;
+            menuToShow.transform.DOScale(Vector3.one, panelPopDuration)
+                .SetEase(panelPopEase)
+                .SetUpdate(true); // Permet l'anim même si le TimeScale est à 0
         }
         else
         {
-            confettiParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            confettiParticlesTwo.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            menuToShow.transform.localScale = Vector3.one;
+        }
+
+        OnMenuOpened?.Invoke(menuToShow);
+
+        if (confettiParticles != null)
+        {
+            if (menuToShow == endMenu)
+            {
+                confettiParticles.Play();
+                confettiParticlesTwo.Play();
+            }
+            else
+            {
+                confettiParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                confettiParticlesTwo.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
         }
     }
-    }
 
-    // LA fonction magique pour tous tes boutons "Retour"
     public void GoBack()
     {
-        if (menuStack.Count <= 1) 
+        // Si on a plus de 1 menu, on peut faire un retour classique
+        if (menuStack.Count > 1)
         {
-            Debug.Log("Déjà sur le menu principal");
-            return;
+            // On enlève le menu actuel
+            GameObject currentMenu = menuStack.Pop();
+            currentMenu.SetActive(false);
+
+            // On affiche le précédent
+            GameObject previousMenu = menuStack.Peek();
+            previousMenu.SetActive(true);
+
+            // Animation de pop au retour
+            previousMenu.transform.localScale = Vector3.zero;
+            previousMenu.transform.DOScale(Vector3.one, panelPopDuration)
+                .SetEase(panelPopEase)
+                .SetUpdate(true);
+
+            OnMenuOpened?.Invoke(previousMenu);
         }
-
-        // On enlève le menu actuel de la pile
-        GameObject currentMenu = menuStack.Pop();
-        currentMenu.SetActive(false);
-
-        // On affiche le menu précédent
-        GameObject previousMenu = menuStack.Peek();
-        previousMenu.SetActive(true);
-        OnMenuOpened?.Invoke(previousMenu);
+        else
+        {
+            // --- CAS PARTICULIER (ex: après un Rejouer) ---
+            // Si la pile est vide ou n'a qu'un menu, le bouton retour renvoie au StartMenu
+            Debug.Log("Pile vide ou racine, retour au menu principal.");
+            OpenStartMenu();
+        }
     }
 
-    // Raccourcis pour tes boutons dans l'Inspector
-    public void OpenStartMenu() => ShowMenu(startMenu, false); // Faux car c'est la racine
+    public void OpenStartMenu() => ShowMenu(startMenu, false);
     public void OpenSettings() => ShowMenu(settingsMenu);
     public void OpenGameSelection() => ShowMenu(gameSelectionMenu);
     public void OpenFilters() => ShowMenu(filterMenu);
@@ -110,7 +134,12 @@ public class NavigationManager : MonoBehaviour
         addQuestionMenu.SetActive(false);
         addedQuestionsListMenu.SetActive(false);
         endMenu.SetActive(false);
-        
         menuStack.Clear();
+    }
+
+    public void ResetHistoryAndOpen(GameObject menu)
+    {
+        menuStack.Clear(); // Vide l'historique complet
+        ShowMenu(menu, true, true); // Ouvre le nouveau menu proprement
     }
 }

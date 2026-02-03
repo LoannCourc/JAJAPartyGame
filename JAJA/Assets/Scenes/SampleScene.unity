@@ -18339,7 +18339,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -50, y: 0.00340271}
+  m_AnchoredPosition: {x: -50, y: 0.005844116}
   m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1643667056
@@ -21086,9 +21086,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1864200251}
-        m_TargetAssemblyTypeName: LevelManager, Assembly-CSharp
-        m_MethodName: PrepareGame
+      - m_Target: {fileID: 1565076767}
+        m_TargetAssemblyTypeName: GameplayManager, Assembly-CSharp
+        m_MethodName: ReplayGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -22358,7 +22358,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1954375891
 RectTransform:
   m_ObjectHideFlags: 0
@@ -24610,6 +24610,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1310201449}
     - target: {fileID: 7895141348834893038, guid: cdad1680fa15ead41b74d0d2b587ffb5, type: 3}
+      propertyPath: startDelay
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7895141348834893038, guid: cdad1680fa15ead41b74d0d2b587ffb5, type: 3}
       propertyPath: sheetLoader
       value: 
       objectReference: {fileID: 903832209}
@@ -25127,6 +25131,10 @@ PrefabInstance:
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 8727123476819678834, guid: f84037e0911832548b61ad49a9d9ee7a, type: 3}
+      propertyPath: panelPopEase
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 8727123476819678834, guid: f84037e0911832548b61ad49a9d9ee7a, type: 3}
       propertyPath: settingsMenu
       value: 
       objectReference: {fileID: 161808393}
@@ -25142,6 +25150,10 @@ PrefabInstance:
       propertyPath: addQuestionMenu
       value: 
       objectReference: {fileID: 26248729}
+    - target: {fileID: 8727123476819678834, guid: f84037e0911832548b61ad49a9d9ee7a, type: 3}
+      propertyPath: panelPopDuration
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8727123476819678834, guid: f84037e0911832548b61ad49a9d9ee7a, type: 3}
       propertyPath: confettiParticles
       value: 

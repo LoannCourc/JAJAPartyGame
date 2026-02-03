@@ -32,7 +32,6 @@ public class PlayerListManager : MonoBehaviour
         // 2. CHARGEMENT DES DONNÉES SAUVEGARDÉES
         if (GameManager.Instance != null && GameManager.Instance.playerNames.Count > 0)
         {
-            // On récupère la liste du GameManager et on recrée les lignes
             foreach (string name in GameManager.Instance.playerNames)
             {
                 AddPlayerVisually(name);
@@ -42,8 +41,13 @@ public class PlayerListManager : MonoBehaviour
         mainInputField.text = "";
         RefreshUI();
 
+        // --- LISTENERS ---
         addBtn.onClick.RemoveAllListeners();
         addBtn.onClick.AddListener(AddPlayerFromInput);
+
+        // AJOUT : Écoute de la touche "Entrée" du clavier
+        mainInputField.onSubmit.RemoveAllListeners();
+        mainInputField.onSubmit.AddListener((val) => AddPlayerFromInput());
     }
 
     public void AddPlayerFromInput()
@@ -58,15 +62,18 @@ public class PlayerListManager : MonoBehaviour
 
         if (playerNames.Count >= MAX_PLAYERS) return;
 
-        // On ajoute au visuel ET on demande au GameManager de sauvegarder
         AddPlayerVisually(nameToAdd);
         GameManager.Instance.AddPlayer(nameToAdd); 
 
         mainInputField.text = ""; 
+        
+        // On garde le focus sur l'input pour pouvoir enchaîner les joueurs rapidement
         mainInputField.ActivateInputField(); 
     }
 
-    // Cette fonction s'occupe uniquement de la partie visuelle (Prefab + Animation)
+    // Version surchargée pour l'évenement onSubmit si nécessaire (certaines versions de TMP demandent le string)
+    public void AddPlayerFromInput(string val) => AddPlayerFromInput();
+
     private void AddPlayerVisually(string name)
     {
         playerNames.Add(name);
@@ -93,8 +100,6 @@ public class PlayerListManager : MonoBehaviour
         if (playerNames.Contains(name))
         {
             playerNames.Remove(name);
-            
-            // On prévient le GameManager pour qu'il mette à jour le PlayerPrefs
             GameManager.Instance.SyncFinalList(playerNames);
 
             GameObject rowToDestroy = activeRows[name];
@@ -117,7 +122,6 @@ public class PlayerListManager : MonoBehaviour
 
     public void FinalizePlayers()
     {
-        // Synchronisation finale avant de lancer le jeu
         GameManager.Instance.SyncFinalList(playerNames);
         NavigationManager.Instance.OpenGameSelection();
         gameMenuManager.DisplayGames();
