@@ -24893,6 +24893,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 560411580}
     - target: {fileID: 286136173429280955, guid: c2743cdb24fb2184e93cf378633287a2, type: 3}
+      propertyPath: cardContainer
+      value: 
+      objectReference: {fileID: 1089741727}
+    - target: {fileID: 286136173429280955, guid: c2743cdb24fb2184e93cf378633287a2, type: 3}
       propertyPath: extraInfoText
       value: 
       objectReference: {fileID: 1354492725}
@@ -24908,6 +24912,10 @@ PrefabInstance:
       propertyPath: difficultyIconImage
       value: 
       objectReference: {fileID: 430394633}
+    - target: {fileID: 286136173429280955, guid: c2743cdb24fb2184e93cf378633287a2, type: 3}
+      propertyPath: swipeCardController
+      value: 
+      objectReference: {fileID: 1089741730}
     - target: {fileID: 3790208543928747759, guid: c2743cdb24fb2184e93cf378633287a2, type: 3}
       propertyPath: m_Name
       value: GameplayManager
