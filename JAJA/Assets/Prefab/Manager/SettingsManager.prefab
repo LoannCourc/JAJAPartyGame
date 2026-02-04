@@ -44,3 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdb7a0f4fbd1ccc45952ee32273ccfee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SettingsManager
+  showSips: 0
+  onlyCustomQuestions: 0
+  vibrationsEnabled: 0
+  sipsToggle: {fileID: 0}
+  customToggle: {fileID: 0}
+  vibroToggle: {fileID: 0}
+  privacyPolicyURL: https://doc-hosting.flycricket.io/jaja-jeux-de-soiree-privacy-policy/739aff10-ba15-44be-9466-827def9ab183/privacy
+  termsOfUseURL: https://doc-hosting.flycricket.io/jaja-jeux-de-soiree-terms-of-use/c3ce7f6b-6903-41a1-a38d-14ae957b2e2c/terms

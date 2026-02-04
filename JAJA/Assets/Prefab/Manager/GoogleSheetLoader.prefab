@@ -49,7 +49,7 @@ MonoBehaviour:
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=260461181&single=true&output=csv
     gameDescription: "Un mix de tous les jeux pr\xE9sents dans cette application."
     gameIcon: {fileID: 21300000, guid: b3ba42a52a37f224b9740b8dcedc4c7a, type: 3}
-  - gameName: "Mytho ou r\xE9alit\xE9 ?"
+  - gameName: "Mytho ou r\xE9alit\xE9"
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=466558057&single=true&output=csv
     gameDescription: "Une question impossible, 1 chance sur 2 d'avoir la r\xE9ponse,
       mentez aux autres !"

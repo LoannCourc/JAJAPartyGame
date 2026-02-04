@@ -1,14 +1,16 @@
 using UnityEngine;
 using UnityEngine.Purchasing;
-using UnityEngine.Purchasing.Extension;
 using System;
+using System.Collections.Generic;
 
-public class IAPManager : MonoBehaviour, IDetailedStoreListener
+// On utilise IStoreListener tout court, IDetailedStoreListener est devenu obsolète
+public class IAPManager : MonoBehaviour, IStoreListener
 {
     public static IAPManager Instance;
     public string premiumProductID = "com.herocorp.jaja.premium";
 
     private IStoreController storeController;
+    private IExtensionProvider extensionProvider;
 
     void Awake()
     {
@@ -18,63 +20,90 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
 
     void Start()
     {
+        // V5 : Utilisation de StandardPurchasingModule.Instance() directement
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
         builder.AddProduct(premiumProductID, ProductType.NonConsumable);
+
+        // Initialisation V5
         UnityPurchasing.Initialize(this, builder);
     }
 
     public void BuyPremium()
-{
-    if (storeController == null)
     {
-        Debug.LogError("IAP non initialisé ! Vérifie ta connexion internet ou ta clé de licence.");
-        return;
+        if (storeController == null) return;
+
+        var product = storeController.products.WithID(premiumProductID);
+        if (product != null && product.availableToPurchase)
+        {
+            storeController.InitiatePurchase(product);
+        }
     }
 
-    var product = storeController.products.WithID(premiumProductID);
-    if (product == null)
+    // --- RESTAURATION VERSION V5 ---
+    public void RestorePurchases()
     {
-        Debug.LogError($"Produit {premiumProductID} introuvable dans le store controller.");
-        return;
+        if (storeController == null) return;
+
+        if (Application.platform == RuntimePlatform.IPhonePlayer || 
+            Application.platform == RuntimePlatform.OSXPlayer)
+        {
+            // V5 : Nouvelle façon d'appeler les extensions Apple
+            var apple = extensionProvider.GetExtension<IAppleExtensions>();
+            apple.RestoreTransactions((result, error) => {
+                Debug.Log($"Restauration Apple : {result}. " + (error != null ? $"Erreur: {error}" : ""));
+            });
+        }
+        else
+        {
+            CheckAlreadyOwned();
+        }
     }
 
-    if (!product.availableToPurchase)
-    {
-        Debug.LogError("Le produit est trouvé mais Google dit qu'il n'est pas disponible à l'achat.");
-        return;
-    }
+    // --- CALLBACKS V5 ---
 
-    Debug.Log("Lancement de l'achat...");
-    storeController.InitiatePurchase(premiumProductID);
-}
     public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
     {
         storeController = controller;
-        
-        // Nouvelle méthode V5 pour vérifier l'achat existant
-        var product = storeController.products.WithID(premiumProductID);
-        if (product != null)
-        {
-            // En V5, on vérifie si le produit appartient à l'utilisateur via transactionID ou le reçu
-            if (!string.IsNullOrEmpty(product.transactionID))
-            {
-                Debug.Log("Produit Premium déjà possédé.");
-                PremiumManager.Instance.UnlockPremium();
-            }
-        }
+        extensionProvider = extensions;
+        CheckAlreadyOwned();
     }
 
-    public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
+    private void CheckAlreadyOwned()
     {
-        if (string.Equals(args.purchasedProduct.definition.id, premiumProductID, StringComparison.Ordinal))
+        var product = storeController.products.WithID(premiumProductID);
+        // En V5, on vérifie hasReceipt au lieu de transactionID pour plus de fiabilité
+        if (product != null && product.hasReceipt)
         {
             PremiumManager.Instance.UnlockPremium();
         }
+    }
+
+    // ProcessPurchase n'a pas changé de nom mais les arguments internes si
+    public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
+    {
+        var product = args.purchasedProduct;
+
+        if (string.Equals(product.definition.id, premiumProductID, StringComparison.Ordinal))
+        {
+            PremiumManager.Instance.UnlockPremium();
+        }
+
         return PurchaseProcessingResult.Complete;
     }
 
-    public void OnInitializeFailed(InitializationFailureReason error) { }
-    public void OnInitializeFailed(InitializationFailureReason error, string message) { }
-    public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason) { }
-    public void OnPurchaseFailed(Product product, PurchaseFailureDescription failureDescription) { }
+    // Gestion des échecs V5
+    public void OnInitializeFailed(InitializationFailureReason error) 
+    {
+        OnInitializeFailed(error, null);
+    }
+
+    public void OnInitializeFailed(InitializationFailureReason error, string message)
+    {
+        Debug.LogError($"IAP Init Failed: {error}. Message: {message}");
+    }
+
+    public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason)
+    {
+        Debug.LogError($"Achat échoué pour {product.definition.id} : {failureReason}");
+    }
 }
