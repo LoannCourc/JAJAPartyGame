@@ -57,15 +57,16 @@ MonoBehaviour:
   - gameName: "Action ou v\xE9rit\xE9"
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=570169031&single=true&output=csv
     gameDescription: "Le classique ! R\xE9ponds \xE0 une v\xE9rit\xE9 ou fais une
-      action"
+      action ;)"
     gameIcon: {fileID: 21300000, guid: af909e55b5dc32a45aeb99263fc95824, type: 3}
   - gameName: Je n'ai jamais
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=94083162&single=true&output=csv
-    gameDescription: "Celui qui a d\xE9j\xE0 perd "
+    gameDescription: "Une phrase commence par \"Je n'ai jamais\". Celui qui a d\xE9j\xE0
+      perd. "
     gameIcon: {fileID: 21300000, guid: 85d8d2d4ff093ae4583b72c855a8a9ac, type: 3}
   - gameName: Petit Bac
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=897321518&single=true&output=csv
-    gameDescription: "Un th\xE8me, une lettre, le plus rapide l'emporte"
+    gameDescription: "Un th\xE8me, une lettre, le plus rapide l'emporte."
     gameIcon: {fileID: 21300000, guid: 08ed8bb1e55d43e408986aa25463a68b, type: 3}
   - gameName: Le meilleur
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=2090329714&single=true&output=csv
@@ -73,15 +74,15 @@ MonoBehaviour:
     gameIcon: {fileID: 21300000, guid: 1e692f6f3ec187744a5f7ff3876bc387, type: 3}
   - gameName: Qui pourrait
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=1219249046&single=true&output=csv
-    gameDescription: "D\xE9signez la personne qui pourrait effectuer cette action"
+    gameDescription: "D\xE9signez la personne qui pourrait effectuer cette action."
     gameIcon: {fileID: 21300000, guid: a720baba4fc5d7349bc96a3c56077bae, type: 3}
   - gameName: "Tu pr\xE9f\xE8res"
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=790440497&single=true&output=csv
-    gameDescription: "Deux choix, une d\xE9cision, \xE0 vous de choisir"
+    gameDescription: "Deux choix, une d\xE9cision, \xE0 vous de choisir."
     gameIcon: {fileID: 21300000, guid: a99af65d0c079054ca66000cb75def07, type: 3}
   - gameName: Culture G
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=594782963&single=true&output=csv
-    gameDescription: Viens tester tes connaissances
+    gameDescription: Viens tester tes connaissances.
     gameIcon: {fileID: 21300000, guid: 35b4ea90134fd9040b05ee1da360d4d4, type: 3}
   - gameName: Qui est qui ?
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=1498239851&single=true&output=csv
@@ -90,6 +91,7 @@ MonoBehaviour:
     gameIcon: {fileID: 21300000, guid: ec3dd807f4bb54044922ebc37081549b, type: 3}
   - gameName: "Ench\xE8res"
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=26778154&single=true&output=csv
-    gameDescription: Misez sur l'action, le gagnant doit prouver qu'il peut le faire
+    gameDescription: Misez sur l'action, le gagnant doit prouver qu'il peut le faire,
+      sinon c'est perdu.
     gameIcon: {fileID: 21300000, guid: 00c582a4f16014b4eacce4d04950a3fb, type: 3}
   inspectorDatabase: []

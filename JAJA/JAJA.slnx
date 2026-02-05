@@ -1,4 +1,14 @@
 ﻿<Solution>
+  <Project Path="Unity.Purchasing.csproj" />
+  <Project Path="Unity.Purchasing.Stores.csproj" />
+  <Project Path="UnityEditor.Purchasing.csproj" />
+  <Project Path="Unity.Purchasing.AppleMacosStub.csproj" />
+  <Project Path="Unity.Purchasing.Codeless.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Unity.Purchasing.SecurityCore.csproj" />
+  <Project Path="Unity.Purchasing.Utilities.csproj" />
+  <Project Path="Unity.Purchasing.AppleStub.csproj" />
+  <Project Path="Unity.Purchasing.SecurityStub.csproj" />
+  <Project Path="IAPResolver.csproj" />
 </Solution>

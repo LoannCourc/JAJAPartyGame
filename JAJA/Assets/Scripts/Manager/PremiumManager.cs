@@ -1,8 +1,14 @@
 using UnityEngine;
+using UnityEngine.UI; // Pour manipuler le Button
+using TMPro;
 
 public class PremiumManager : MonoBehaviour
 {
     public static PremiumManager Instance;
+
+    [Header("UI Premium")]
+    public Button buyPremiumButton;      // Glisse ton bouton ici dans l'inspecteur
+    public TMP_Text buttonText;
 
     [Header("Réglages Développeur (Éditeur)")]
     [Tooltip("Coche pour simuler le Premium dans l'éditeur Unity.")]
@@ -39,7 +45,18 @@ public class PremiumManager : MonoBehaviour
         PlayerPrefs.Save();
 
         if (GoogleSheetLoader.Instance != null)
-            StartCoroutine(GoogleSheetLoader.Instance.ReloadForPremium());
+            {StartCoroutine(GoogleSheetLoader.Instance.ReloadForPremium());}
+
+
+        if (buyPremiumButton != null)
+        {
+            buyPremiumButton.interactable = false; // Désactive le bouton
+        }
+
+        if (buttonText != null)
+        {
+            buttonText.text = "Mode Premium débloqué !"; // Change le texte
+        }    
     }
 
     public void ResetPurchase()
