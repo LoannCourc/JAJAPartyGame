@@ -123,12 +123,23 @@ public class GameManager : MonoBehaviour
 
     public string GetDifficultyMapping(string gameInsideMix)
     {
+        string subGame = gameInsideMix.ToLower();
+
         if (selectedGameMode == "On mixe ?")
         {
-            if (gameInsideMix == "Enchères" || gameInsideMix == "Culture G" || gameInsideMix == "Petit bac")
+            if (selectedDifficulty == "Hot")
+            {
+                if (subGame.Contains("culture g") || subGame.Contains("enchères")) 
+                    return "Difficile";
+                
+                if (subGame.Contains("qui est qui") || subGame.Contains("mytho")) 
+                    return "Unique";
+            }
+            
+            // Logique existante pour Difficile -> Moyen
+            if (subGame.Contains("culture g") || subGame.Contains("enchères") || subGame.Contains("petit bac"))
             {
                 if (selectedDifficulty == "Difficile") return "Moyen";
-                if (selectedDifficulty == "Hot") return "Difficile";
             }
         }
         return selectedDifficulty;

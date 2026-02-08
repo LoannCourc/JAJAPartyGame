@@ -28,6 +28,7 @@ public class CustomQuestionManager : MonoBehaviour
 
     [Header("Paramètres")]
     public TMP_Dropdown difficultyDropdown;
+    public Image dropdownArrow; // --- AJOUT : Glisse l'image de la flèche du Dropdown ici ---
     public Slider sipsSlider;
     public TMP_Text sipsValueText;
 
@@ -42,6 +43,9 @@ public class CustomQuestionManager : MonoBehaviour
     {
         filePath = Path.Combine(Application.persistentDataPath, "custom_questions.json");
         if (feedbackText != null) feedbackText.gameObject.SetActive(false);
+        
+        gameTypeDropdown.onValueChanged.AddListener(delegate { UpdateUIForGameMode(); });
+
         LoadQuestions();
         UpdateUIForGameMode();
     }
@@ -49,6 +53,7 @@ public class CustomQuestionManager : MonoBehaviour
     public void UpdateUIForGameMode()
     {
         string selected = gameTypeDropdown.options[gameTypeDropdown.value].text;
+        
         if (string.IsNullOrEmpty(selected) || selected.Contains("Choisir"))
         {
             mainFieldsContainer.SetActive(false);
@@ -56,21 +61,82 @@ public class CustomQuestionManager : MonoBehaviour
         }
 
         mainFieldsContainer.SetActive(true);
-        groupSimple.SetActive(false); groupWithAnswer.SetActive(false);
-        groupTwoOptions.SetActive(false); groupFourOptions.SetActive(false);
+
+        groupSimple.SetActive(false); 
+        groupWithAnswer.SetActive(false);
+        groupTwoOptions.SetActive(false); 
+        groupFourOptions.SetActive(false);
 
         string mode = selected.ToLower();
+
         if (mode.Contains("préfère")) groupTwoOptions.SetActive(true);
         else if (mode.Contains("qui est qui")) groupFourOptions.SetActive(true);
         else if (mode.Contains("culture") || mode.Contains("mytho")) groupWithAnswer.SetActive(true);
         else groupSimple.SetActive(true);
+
+        UpdateDifficultyOptions(selected);
     }
 
+    private void UpdateDifficultyOptions(string gameName)
+    {
+        if (difficultyDropdown == null) return;
+
+        difficultyDropdown.ClearOptions();
+        List<string> options = new List<string>();
+        string lowerName = gameName.ToLower().Trim();
+        
+        // Variable pour savoir si on doit verrouiller le menu
+        bool isUnique = false;
+
+        // CAS 1 : Culture G, Enchères
+        if (lowerName.Contains("culture") || lowerName.Contains("enchères"))
+        {
+            options.Add("Facile");
+            options.Add("Moyen");
+            options.Add("Difficile");
+        }
+        // CAS 2 : Qui est qui, Mytho => UNIQUE (Verrouillé)
+        else if (lowerName.Contains("qui est qui") || lowerName.Contains("mytho"))
+        {
+            options.Add("Unique");
+            isUnique = true; // On marque comme unique
+        }
+        // CAS 3 : Autres (Action/Vérité, Petit Bac, Mixe...)
+        else
+        {
+            options.Add("Facile");
+            options.Add("Difficile");
+            options.Add("Hot");
+        }
+
+        difficultyDropdown.AddOptions(options);
+        difficultyDropdown.value = 0; 
+        difficultyDropdown.RefreshShownValue();
+
+        // --- GESTION DU VERROUILLAGE ---
+        // Si c'est unique, on rend le dropdown non-cliquable
+        difficultyDropdown.interactable = !isUnique;
+
+        // Si c'est unique, on cache la flèche
+        if (dropdownArrow != null)
+        {
+            dropdownArrow.enabled = !isUnique;
+        }
+    }
+
+    // ... Le reste du script (SaveNewQuestion, etc.) reste identique ...
+    
     public void SaveNewQuestion()
     {
-        if (!PremiumManager.Instance.IsUserPremium && customData.questions.Count >= PremiumManager.Instance.maxFreeCustomQuestions)
+        if (PremiumManager.Instance != null && !PremiumManager.Instance.IsUserPremium && customData.questions.Count >= PremiumManager.Instance.maxFreeCustomQuestions)
         {
-            ShowPopFeedback("Limite atteinte", Color.red);
+            ShowPopFeedback("Limite atteinte (Version Gratuite)", Color.red);
+            return;
+        }
+
+        if (IsInputEmpty())
+        {
+            ShowPopFeedback("Remplissez les champs !", Color.yellow);
             return;
         }
 
@@ -81,27 +147,45 @@ public class CustomQuestionManager : MonoBehaviour
             sips = (int)sipsSlider.value
         };
 
-        if (groupTwoOptions.activeSelf) newQ.text = $"{inputPrefer1.text} | {inputPrefer2.text}";
-        else if (groupFourOptions.activeSelf) newQ.text = $"{inputWho1.text} | {inputWho2.text} | {inputWho3.text} | {inputWho4.text}";
-        else if (groupWithAnswer.activeSelf) { newQ.text = inputQuestionText.text; newQ.option1 = inputHiddenAnswer.text; }
-        else newQ.text = inputSimpleText.text;
+        if (groupTwoOptions.activeSelf) 
+            newQ.text = $"{inputPrefer1.text} | {inputPrefer2.text}";
+        else if (groupFourOptions.activeSelf) 
+            newQ.text = $"{inputWho1.text} | {inputWho2.text} | {inputWho3.text} | {inputWho4.text}";
+        else if (groupWithAnswer.activeSelf) 
+        { 
+            newQ.text = inputQuestionText.text; 
+            newQ.option1 = inputHiddenAnswer.text; 
+        }
+        else 
+            newQ.text = inputSimpleText.text;
 
-        if (string.IsNullOrWhiteSpace(newQ.text) || newQ.text.Trim() == "|") return;
+        newQ.difficulty += " (custom)";
 
         customData.questions.Add(newQ);
         SaveToFile();
-        GoogleSheetLoader.Instance?.LoadLocalCustomQuestions();
+        
+        if(GoogleSheetLoader.Instance != null) 
+            GoogleSheetLoader.Instance.LoadLocalCustomQuestions();
 
-        ShowPopFeedback("Ajoutée !", Color.white);
+        ShowPopFeedback("Question ajoutée !", Color.green);
         ClearAllFields();
         RefreshListView();
+    }
+
+    private bool IsInputEmpty()
+    {
+        if (groupSimple.activeSelf) return string.IsNullOrWhiteSpace(inputSimpleText.text);
+        if (groupWithAnswer.activeSelf) return string.IsNullOrWhiteSpace(inputQuestionText.text);
+        if (groupTwoOptions.activeSelf) return string.IsNullOrWhiteSpace(inputPrefer1.text) || string.IsNullOrWhiteSpace(inputPrefer2.text);
+        if (groupFourOptions.activeSelf) return string.IsNullOrWhiteSpace(inputWho1.text);
+        return true;
     }
 
     private void ShowPopFeedback(string message, Color color)
     {
         if (feedbackText == null) return;
 
-        feedbackText.DOKill(); // Stop animations en cours
+        feedbackText.DOKill();
         feedbackText.gameObject.SetActive(true);
         feedbackText.text = message;
         feedbackText.color = color;
@@ -123,42 +207,55 @@ public class CustomQuestionManager : MonoBehaviour
         inputWho1.text = ""; inputWho2.text = ""; inputWho3.text = ""; inputWho4.text = "";
     }
 
-   public void UpdateSipsDisplay(float value)
-{
-    int sips = Mathf.RoundToInt(value);
-    
-    // Gestion du pluriel
-    string label = sips > 1 ? "Gorgées : " : "Gorgée : ";
-    sipsValueText.text = label + sips;
+    public void UpdateSipsDisplay(float value)
+    {
+        int sips = Mathf.RoundToInt(value);
+        string label = sips > 1 ? "Gorgées : " : "Gorgée : ";
+        sipsValueText.text = label + sips;
 
-    // --- ANIMATION DOTWEEN ---
-    // On arrête l'animation précédente pour éviter les bugs visuels
-    sipsValueText.transform.DOKill();
-    // Reset de l'échelle pour éviter que le texte ne reste petit ou grand
-    sipsValueText.transform.localScale = Vector3.one; 
-    // Petit rebond d'échelle (1.1x) pendant 0.15 seconde
-    sipsValueText.transform.DOPunchScale(new Vector3(0.1f, 0.1f, 0), 0.15f, 10, 1);
-}
+        sipsValueText.transform.DOKill();
+        sipsValueText.transform.localScale = Vector3.one; 
+        sipsValueText.transform.DOPunchScale(new Vector3(0.1f, 0.1f, 0), 0.15f, 10, 1);
+    }
+
     private void SaveToFile() => File.WriteAllText(filePath, JsonUtility.ToJson(customData, true));
-    private void LoadQuestions() { if (File.Exists(filePath)) { customData = JsonUtility.FromJson<CustomQuestionList>(File.ReadAllText(filePath)); RefreshListView(); } }
+    
+    private void LoadQuestions() 
+    { 
+        if (File.Exists(filePath)) 
+        { 
+            try {
+                customData = JsonUtility.FromJson<CustomQuestionList>(File.ReadAllText(filePath)); 
+                RefreshListView(); 
+            }
+            catch { Debug.LogWarning("Fichier JSON corrompu ou vide"); }
+        } 
+    }
 
     public void RefreshListView()
     {
         foreach (Transform child in listContent) Destroy(child.gameObject);
+        
         foreach (CustomQuestion q in customData.questions)
         {
             GameObject item = Instantiate(questionPrefab, listContent);
             TMP_Text[] texts = item.GetComponentsInChildren<TMP_Text>();
             foreach (var t in texts)
             {
-                if (t.name == "QuestionText") t.text = q.text;
-                if (t.name == "GameTypeText") t.text = $"{q.gameType} ({q.difficulty})";
+                if (t.name == "QuestionText" || t.name.Contains("Content")) t.text = q.text.Replace("|", " / ");
+                if (t.name == "GameTypeText" || t.name.Contains("Label")) t.text = $"{q.gameType} - {q.difficulty.Replace(" (custom)", "")}";
             }
             item.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveQuestion(q));
         }
     }
 
-    public void RemoveQuestion(CustomQuestion q) { customData.questions.Remove(q); SaveToFile(); RefreshListView(); }
+    public void RemoveQuestion(CustomQuestion q) 
+    { 
+        customData.questions.Remove(q); 
+        SaveToFile(); 
+        if(GoogleSheetLoader.Instance != null) GoogleSheetLoader.Instance.LoadLocalCustomQuestions();
+        RefreshListView(); 
+    }
 
     [System.Serializable] public class CustomQuestion { public string gameType, difficulty, text, option1; public int sips; }
     [System.Serializable] public class CustomQuestionList { public List<CustomQuestion> questions = new List<CustomQuestion>(); }

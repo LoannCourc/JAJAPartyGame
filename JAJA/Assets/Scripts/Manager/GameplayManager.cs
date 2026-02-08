@@ -43,14 +43,12 @@ public class GameplayManager : MonoBehaviour
     }
     public void ReplayGame()
     {
-        if (currentDeck == null || currentDeck.Count == 0) return;
-
-        // 1. On vide l'historique et on affiche le panneau de jeu
-        // Cela évite que le bouton "Retour" ne revienne sur le EndMenu
+        // 1. On vide l'historique de navigation pour être propre
         NavigationManager.Instance.ResetHistoryAndOpen(NavigationManager.Instance.gamePanel);
 
-        // 2. On relance la logique de jeu avec le même deck
-        StartGameSession(currentDeck);
+        // 2. On demande au LevelManager de tout refaire (Piocher, Filtrer, Mélanger, Insérer Événements)
+        // Il utilisera les paramètres (Difficulté, Mode) qui sont toujours stockés dans le GameManager
+        LevelManager.Instance.PrepareGame();
     }
 
     public void ReturnToMenu()

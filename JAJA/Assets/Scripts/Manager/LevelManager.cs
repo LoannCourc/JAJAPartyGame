@@ -22,11 +22,11 @@ public class LevelManager : MonoBehaviour
         string targetDiff = GameManager.Instance.selectedDifficulty.ToLower().Trim();
         int targetCount = GameManager.Instance.questionCount;
         
-        // Vérifie si l'option "Mes questions uniquement" est cochée dans les paramètres
         bool onlyCustom = SettingsManager.Instance != null && SettingsManager.Instance.onlyCustomQuestions;
 
-        // 2. Récupération du pool global (Google Sheets + JSON injecté)
-        List<QuestionData> masterPool = GetMasterPool(selectedGame);
+        // 2. Récupération du pool (On passe la difficulté pour le filtrage intelligent)
+        // MODIFICATION ICI : on envoie targetDiff à GetMasterPool
+        List<QuestionData> masterPool = GetMasterPool(selectedGame, targetDiff);
 
         if (masterPool == null || masterPool.Count == 0)
         {
@@ -34,73 +34,117 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        // 3. FILTRAGE INTELLIGENT
+        // 3. FILTRAGE
         List<QuestionData> filteredList = masterPool.FindAll(q => 
         {
             // --- A. FILTRE "MES QUESTIONS UNIQUEMENT" ---
-            // On vérifie si la difficulté contient le tag "custom" (ajouté par le Loader lors de l'injection du JSON)
             bool isCustom = q.difficulty.ToLower().Contains("custom");
-            
             if (onlyCustom && !isCustom) return false;
 
             // --- B. FILTRE DE DIFFICULTÉ ---
-            // Si le joueur a choisi "Aléatoire", on accepte tout (qui a passé le filtre A)
+            
+            // MODIFICATION ICI : Si on est en mode Mixe + Hot, le tri a déjà été fait 
+            // précisément dans GetMasterPool, donc on accepte tout ce qui arrive ici.
+            if (selectedGame.ToLower().Contains("mixe") && targetDiff == "hot")
+            {
+                return true; 
+            }
+
+            // Comportement classique pour les autres modes
             if (targetDiff == "aléatoire" || string.IsNullOrEmpty(targetDiff)) 
                 return true;
 
-            // On compare la difficulté en ignorant le tag "(custom)" pour que les questions perso
-            // soient filtrées comme les questions normales (ex: "facile (custom)" devient "facile")
             string cleanQDiff = q.difficulty.ToLower().Replace("(custom)", "").Trim();
-            
             return cleanQDiff == targetDiff;
         });
 
-        // 4. SÉCURITÉ : SI RIEN NE CORRESPOND (Pool vide après filtrage)
+        // 4. SÉCURITÉ
         if (filteredList.Count == 0)
         {
             Debug.LogWarning("Aucune question trouvée pour " + targetDiff + ". On prend le pool par défaut.");
-            filteredList = new List<QuestionData>(masterPool);
+            // Attention : si GetMasterPool a déjà filtré sévèrement, masterPool est peut-être déjà restreint.
+            // Dans le doute, on recharge tout sans filtre si c'est vide.
+            if (selectedGame.ToLower().Contains("mixe") && targetDiff == "hot")
+            {
+                filteredList = GetMasterPool(selectedGame, "aléatoire"); // Recharge de secours
+            }
+            else
+            {
+                filteredList = new List<QuestionData>(masterPool);
+            }
         }
 
         // 5. CRÉATION DU DECK FINAL
         Shuffle(filteredList);
         
-        // On remplit le deck selon le nombre de questions demandé
         for (int k = 0; k < targetCount; k++)
         {
             gameSessionDeck.Add(filteredList[k % filteredList.Count]);
         }
 
-        // 6. AJOUT DES ÉVÉNEMENTS ET LANCEMENT
+        // 6. AJOUT DES ÉVÉNEMENTS
         AddEventsToDeck();
         GameplayManager.Instance.StartGameSession(gameSessionDeck);
         NavigationManager.Instance.OpenGamePanel();
     }
 
-    private List<QuestionData> GetMasterPool(string gameName)
+    // MODIFICATION DE LA SIGNATURE : ajout de string targetDifficulty
+    private List<QuestionData> GetMasterPool(string gameName, string targetDifficulty)
     {
         string lowerName = gameName.ToLower();
         List<QuestionData> pool = new List<QuestionData>();
 
-        // Logique spéciale pour le mode "On Mixe"
+        // --- LOGIQUE SPÉCIALE "ON MIXE" ---
         if (lowerName.Contains("mixe"))
         {
             foreach (var entry in GoogleSheetLoader.Instance.gameDatabase)
             {
-                // On n'ajoute pas les événements dans le pool de questions de base
-                if (entry.Key.ToLower().Contains("événement") || entry.Key.ToLower().Contains("évènement")) 
+                string subGameName = entry.Key.ToLower();
+
+                // Ignorer les événements
+                if (subGameName.Contains("événement") || subGameName.Contains("évènement")) 
                     continue;
-                
-                pool.AddRange(entry.Value);
+
+                // --- GESTION DU MODE HOT INTELLIGENT ---
+                if (targetDifficulty == "hot")
+                {
+                    string requiredDiff = "hot"; // Par défaut, on cherche du Hot
+
+                    // Règles spécifiques selon tes jeux :
+                    if (subGameName.Contains("culture g") || subGameName.Contains("enchères"))
+                    {
+                        // Pour ces jeux, le max est "difficile"
+                        requiredDiff = "difficile";
+                    }
+                    else if (subGameName.Contains("qui est qui") || subGameName.Contains("mytho"))
+                    {
+                        // Pour ces jeux, c'est "unique"
+                        requiredDiff = "unique";
+                    }
+                    // Note: Petit Bac, Action Vérité, etc. restent sur "hot" par défaut.
+
+                    // On ajoute seulement les questions qui correspondent à la difficulté "max" de ce sous-jeu
+                    pool.AddRange(entry.Value.FindAll(q => 
+                        q.difficulty.ToLower().Replace("(custom)", "").Trim() == requiredDiff
+                    ));
+                }
+                else
+                {
+                    // Si ce n'est pas le mode Hot, on prend tout, le filtrage se fera dans PrepareGame
+                    pool.AddRange(entry.Value);
+                }
             }
         }
+        // --- LOGIQUE NORMALE (Jeu unique) ---
         else if (GoogleSheetLoader.Instance.gameDatabase.ContainsKey(gameName))
         {
             pool = new List<QuestionData>(GoogleSheetLoader.Instance.gameDatabase[gameName]);
         }
+        
         return pool;
     }
 
+    // ... Le reste (AddEventsToDeck, Shuffle) reste identique ...
     private void AddEventsToDeck()
     {
         List<QuestionData> eventList = null;
@@ -118,14 +162,12 @@ public class LevelManager : MonoBehaviour
         {
             Shuffle(eventList);
             int eventIdx = 0;
-            // Premier événement entre la 4ème et 6ème position
             int currentInsertIndex = Random.Range(4, 6);
 
             while (currentInsertIndex < gameSessionDeck.Count)
             {
                 gameSessionDeck.Insert(currentInsertIndex, eventList[eventIdx % eventList.Count]);
                 eventIdx++;
-                // Événement suivant toutes les 5 à 7 questions
                 currentInsertIndex += Random.Range(5, 7);
             }
         }
