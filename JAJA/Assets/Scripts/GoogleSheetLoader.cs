@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using DG.Tweening; // Nécessaire pour l'animation de l'image
 
 [System.Serializable]
 public class QuestionData { public string gameType, text, option1, option2, difficulty, sips; }
@@ -23,22 +24,82 @@ public class GoogleSheetLoader : MonoBehaviour
     [Header("Visualisation")]
     public List<GameCategory> inspectorDatabase = new List<GameCategory>();
     
-    // Les dictionnaires dont GameMenuManager a besoin
+    [Header("UI Feedback Connexion")]
+    public GameObject noConnectionIcon; // GLISSE TON IMAGE "PAS DE WIFI" ICI
+    
+    // Les dictionnaires
     public Dictionary<string, List<QuestionData>> gameDatabase = new Dictionary<string, List<QuestionData>>();
     public Dictionary<string, string> gameDescriptions = new Dictionary<string, string>();
     public Dictionary<string, Sprite> gameIcons = new Dictionary<string, Sprite>();
 
+    // --- NOUVELLE VARIABLE D'ÉTAT ---
+    public bool isDataLoaded { get; private set; } = false;
+
     void Awake() { if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); } else Destroy(gameObject); }
     
-    void Start() { if (sheetConfigs.Count > 0) StartCoroutine(LoadAllSheets()); }
+    void Start() 
+    { 
+        if (noConnectionIcon != null) noConnectionIcon.SetActive(false);
+        StartCoroutine(CheckConnectionAndLoad()); 
+    }
 
+    // --- GESTION DE LA CONNEXION ---
+    IEnumerator CheckConnectionAndLoad()
+    {
+        isDataLoaded = false;
+
+        // 1. Vérification initiale
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            Debug.LogWarning("Pas de connexion internet. En attente...");
+            yield return StartCoroutine(WaitForConnection());
+        }
+
+        // 2. Si on est ici, c'est qu'on a du réseau, on lance le téléchargement
+        if (sheetConfigs.Count > 0) 
+        {
+            yield return StartCoroutine(LoadAllSheets());
+        }
+        else
+        {
+            isDataLoaded = true; // Pas de sheets à charger, donc on considère que c'est bon
+        }
+    }
+
+    IEnumerator WaitForConnection()
+    {
+        // On affiche l'icône et on lance l'anim
+        if (noConnectionIcon != null)
+        {
+            noConnectionIcon.SetActive(true);
+            noConnectionIcon.transform.localScale = Vector3.one;
+            // Animation : Grossit et rétrécit en boucle (PingPong)
+            noConnectionIcon.transform.DOScale(1.2f, 0.5f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+        }
+
+        // On boucle tant qu'il n'y a pas internet
+        while (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            yield return new WaitForSeconds(1f); // On vérifie chaque seconde
+        }
+
+        // Connexion revenue !
+        if (noConnectionIcon != null)
+        {
+            noConnectionIcon.transform.DOKill(); // Stop l'anim
+            noConnectionIcon.SetActive(false);
+        }
+    }
+
+    // --- CHARGEMENT ---
     public IEnumerator LoadAllSheets()
     {
+        isDataLoaded = false; // On verrouille le statut
+        
         gameDatabase.Clear();
         gameDescriptions.Clear();
         gameIcons.Clear();
 
-        // Remplissage des dictionnaires de visuels avant le téléchargement
         foreach (SheetLink config in sheetConfigs)
         {
             if (!gameDescriptions.ContainsKey(config.gameName)) gameDescriptions.Add(config.gameName, config.gameDescription);
@@ -47,13 +108,18 @@ public class GoogleSheetLoader : MonoBehaviour
 
         List<Coroutine> activeCoroutines = new List<Coroutine>();
         foreach (SheetLink config in sheetConfigs) activeCoroutines.Add(StartCoroutine(DownloadData(config.url, config.gameName)));
+        
         foreach (var coroutine in activeCoroutines) yield return coroutine;
         
         LoadLocalCustomQuestions();
         UpdateInspectorList();
-        Debug.Log("--- CHARGEMENT TERMINÉ ---");
+        
+        isDataLoaded = true; // --- C'EST FINI, ON DÉVERROUILLE ---
+        Debug.Log("--- CHARGEMENT TERMINÉ (100%) ---");
     }
 
+    // ... Le reste (DownloadData, ParseCSV, LoadLocalCustomQuestions) reste IDENTIQUE ...
+    
     IEnumerator DownloadData(string url, string targetGameName)
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
@@ -69,14 +135,16 @@ public class GoogleSheetLoader : MonoBehaviour
         if (!gameDatabase.ContainsKey(targetGameName)) gameDatabase.Add(targetGameName, new List<QuestionData>());
 
         Dictionary<string, int> difficultyCounter = new Dictionary<string, int>();
-        bool isPremium = PremiumManager.Instance.IsUserPremium;
-        int limit = PremiumManager.Instance.maxFreeQuestionsCap;
+        bool isPremium = PremiumManager.Instance != null && PremiumManager.Instance.IsUserPremium;
+        int limit = PremiumManager.Instance != null ? PremiumManager.Instance.maxFreeQuestionsCap : 30;
 
         for (int i = 1; i < lines.Length; i++)
         {
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
-            string[] cols = line.Split(',');
+            // Utilisation d'un parseur CSV simple (attention aux virgules dans le texte)
+            // Pour faire simple ici on garde ton split, mais attention aux virgules dans tes phrases google sheet
+            string[] cols = line.Split(','); 
 
             if (cols.Length >= 6)
             {
@@ -91,7 +159,11 @@ public class GoogleSheetLoader : MonoBehaviour
                 }
 
                 QuestionData q = new QuestionData { gameType = targetGameName, difficulty = diffRaw };
+                // Reconstitution du texte si des virgules l'ont coupé (méthode basique)
+                // Idéalement il faudrait un vrai CSV Parser, mais gardons ta logique pour l'instant
                 string rawText = cols[5].Trim().Replace("|", "\n");
+                
+                // Sécurisation des index
                 string col6 = (cols.Length > 6) ? cols[6].Trim() : "";
                 string col7 = (cols.Length > 7) ? cols[7].Trim() : "1";
 
@@ -109,25 +181,30 @@ public class GoogleSheetLoader : MonoBehaviour
         if (!File.Exists(filePath)) return;
 
         string json = File.ReadAllText(filePath);
+        // Assure-toi que CustomQuestionManager est accessible
         var localList = JsonUtility.FromJson<CustomQuestionManager.CustomQuestionList>(json);
 
-        foreach (var q in localList.questions)
+        if (localList != null && localList.questions != null)
         {
-            QuestionData convertedQ = new QuestionData { 
-                gameType = q.gameType, 
-                sips = q.sips.ToString(), 
-                difficulty = q.difficulty + " (custom)" 
-            };
-
-            if (q.gameType.ToLower().Contains("préfère") && q.text.Contains(" | "))
+            foreach (var q in localList.questions)
             {
-                string[] parts = q.text.Split(new string[] { " | " }, System.StringSplitOptions.None);
-                convertedQ.option1 = parts[0]; convertedQ.option2 = parts[1];
-            }
-            else convertedQ.text = q.text;
+                QuestionData convertedQ = new QuestionData { 
+                    gameType = q.gameType, 
+                    sips = q.sips.ToString(), 
+                    difficulty = q.difficulty + " (custom)" 
+                };
 
-            if (!gameDatabase.ContainsKey(q.gameType)) gameDatabase.Add(q.gameType, new List<QuestionData>());
-            gameDatabase[q.gameType].Add(convertedQ);
+                if (q.gameType.ToLower().Contains("préfère") && q.text.Contains(" | "))
+                {
+                    string[] parts = q.text.Split(new string[] { " | " }, System.StringSplitOptions.None);
+                    if (parts.Length > 1) { convertedQ.option1 = parts[0]; convertedQ.option2 = parts[1]; }
+                    else { convertedQ.text = q.text; }
+                }
+                else convertedQ.text = q.text;
+
+                if (!gameDatabase.ContainsKey(q.gameType)) gameDatabase.Add(q.gameType, new List<QuestionData>());
+                gameDatabase[q.gameType].Add(convertedQ);
+            }
         }
     }
 

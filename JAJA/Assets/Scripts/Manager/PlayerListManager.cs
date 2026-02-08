@@ -15,21 +15,27 @@ public class PlayerListManager : MonoBehaviour
     public GameObject playerRowPrefab; 
     public Transform container; 
     public Button nextButton;
+    // Référence au texte du bouton pour afficher "Chargement..."
+    public TMP_Text nextButtonText; 
 
     public GameMenuManager gameMenuManager;
 
     private List<string> playerNames = new List<string>();
     private Dictionary<string, GameObject> activeRows = new Dictionary<string, GameObject>();
     private const int MAX_PLAYERS = 10;
+    
+    // Pour mémoriser le texte original du bouton (ex: "SUIVANT" ou "JOUER")
+    private string originalButtonText;
 
     void Start()
     {
-        // 1. Nettoyage visuel au lancement
+        // Sauvegarde du texte original
+        if (nextButtonText != null) originalButtonText = nextButtonText.text;
+
         foreach (Transform child in container) Destroy(child.gameObject);
         activeRows.Clear();
         playerNames.Clear();
 
-        // 2. CHARGEMENT DES DONNÉES SAUVEGARDÉES
         if (GameManager.Instance != null && GameManager.Instance.playerNames.Count > 0)
         {
             foreach (string name in GameManager.Instance.playerNames)
@@ -41,13 +47,18 @@ public class PlayerListManager : MonoBehaviour
         mainInputField.text = "";
         RefreshUI();
 
-        // --- LISTENERS ---
         addBtn.onClick.RemoveAllListeners();
         addBtn.onClick.AddListener(AddPlayerFromInput);
 
-        // AJOUT : Écoute de la touche "Entrée" du clavier
         mainInputField.onSubmit.RemoveAllListeners();
         mainInputField.onSubmit.AddListener((val) => AddPlayerFromInput());
+    }
+
+    // --- NOUVEAU : VÉRIFICATION EN CONTINUE DE L'ÉTAT DU CHARGEMENT ---
+    void Update()
+    {
+        // On met à jour l'interactivité du bouton en temps réel
+        RefreshUI();
     }
 
     public void AddPlayerFromInput()
@@ -66,12 +77,9 @@ public class PlayerListManager : MonoBehaviour
         GameManager.Instance.AddPlayer(nameToAdd); 
 
         mainInputField.text = ""; 
-        
-        // On garde le focus sur l'input pour pouvoir enchaîner les joueurs rapidement
         mainInputField.ActivateInputField(); 
     }
 
-    // Version surchargée pour l'évenement onSubmit si nécessaire (certaines versions de TMP demandent le string)
     public void AddPlayerFromInput(string val) => AddPlayerFromInput();
 
     private void AddPlayerVisually(string name)
@@ -117,7 +125,31 @@ public class PlayerListManager : MonoBehaviour
 
     private void RefreshUI()
     {
-        nextButton.interactable = (playerNames.Count >= 2);
+        // CONDITIONS POUR ACTIVER LE BOUTON :
+        // 1. Il faut au moins 2 joueurs
+        bool hasEnoughPlayers = (playerNames.Count >= 2);
+        
+        // 2. Il faut que les données Google Sheets soient chargées (si le loader existe)
+        bool isDataLoaded = GoogleSheetLoader.Instance != null && GoogleSheetLoader.Instance.isDataLoaded;
+
+        if (!isDataLoaded)
+        {
+            // Cas : Chargement en cours ou pas internet
+            nextButton.interactable = false;
+            if (nextButtonText != null) nextButtonText.text = "Chargement...";
+        }
+        else if (!hasEnoughPlayers)
+        {
+            // Cas : Pas assez de joueurs
+            nextButton.interactable = false;
+            if (nextButtonText != null) nextButtonText.text = originalButtonText; // Remet le texte normal
+        }
+        else
+        {
+            // Cas : Tout est bon !
+            nextButton.interactable = true;
+            if (nextButtonText != null) nextButtonText.text = originalButtonText;
+        }
     }
 
     public void FinalizePlayers()
