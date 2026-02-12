@@ -39,6 +39,13 @@ public class GameplayManager : MonoBehaviour
     {
         currentDeck = new List<QuestionData>(deck);
         currentIndex = 0;
+
+        // NOUVEAU : On s'assure que la carte réapparaît à sa taille normale
+        if (swipeCardController != null)
+        {
+            swipeCardController.ResetCardVisually();
+        }
+
         DisplayQuestionData();
     }
     public void ReplayGame()
@@ -60,22 +67,26 @@ public class GameplayManager : MonoBehaviour
 
     public void NextQuestion()
     {
-        if (currentIndex + 1 < currentDeck.Count)
-        {
-            // Lance l'animation de swipe qui appellera ensuite UpdateDataOnly
-            swipeCardController.PerformFullSwipe(true);
-        }
-        else
-        {
-            NavigationManager.Instance.OpenEndMenu();
-        }
+        swipeCardController.PerformFullSwipe(true);
     }
 
     // Appelée par le script SwipeCard une fois l'animation de sortie terminée
-    public void UpdateDataOnly()
+    public bool UpdateDataOnly()
     {
         currentIndex++;
-        DisplayQuestionData();
+
+        if (currentIndex < currentDeck.Count)
+        {
+            // Il reste des cartes, on met à jour l'affichage
+            DisplayQuestionData();
+            return true; 
+        }
+        else
+        {
+            // C'est la fin du paquet ! On ouvre le menu de fin
+            NavigationManager.Instance.OpenEndMenu();
+            return false; 
+        }
     }
 
     // --- LOGIQUE D'AFFICHAGE ---

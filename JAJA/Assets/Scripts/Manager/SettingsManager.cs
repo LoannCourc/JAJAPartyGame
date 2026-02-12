@@ -20,12 +20,31 @@ public class SettingsManager : MonoBehaviour
     public string privacyPolicyURL = "https://doc-hosting.flycricket.io/jaja-jeux-de-soiree-privacy-policy/ae8ffeef-9381-43fd-b23d-89bc45b80a8e/privacy";
     public string termsOfUseURL = "https://doc-hosting.flycricket.io/jaja-jeux-de-soiree-terms-of-use/fdbc55a6-1f64-4c58-b808-72d4f0a23583/terms";
 
+    [Header("Réseaux Sociaux")]
+    // Modifie ces liens directement dans l'Inspector Unity
+    public string instagramURL = "https://www.instagram.com/ton_compte/";
+    public string tiktokURL = "https://www.tiktok.com/@ton_compte";
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
         else Destroy(gameObject);
 
         LoadSettings();
+    }
+    public void OpenInstagram()
+    {
+        if (!string.IsNullOrEmpty(instagramURL))
+        {
+            Application.OpenURL(instagramURL);
+        }
+    }
+
+    public void OpenTikTok()
+    {
+        if (!string.IsNullOrEmpty(tiktokURL))
+        {
+            Application.OpenURL(tiktokURL);
+        }
     }
 
     // --- SAUVEGARDE ET CHARGEMENT ---

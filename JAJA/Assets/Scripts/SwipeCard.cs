@@ -46,6 +46,7 @@ public class SwipeCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     }
 
     // --- L'ANIMATION UNIQUE (Utilisée par le doigt ET le bouton) ---
+    // --- L'ANIMATION UNIQUE (Utilisée par le doigt ET le bouton) ---
     public void PerformFullSwipe(bool toRight)
     {
         float targetX = toRight ? initialCardPos.x + 1500 : initialCardPos.x - 1500;
@@ -55,16 +56,46 @@ public class SwipeCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         rectTransform.DOAnchorPosX(targetX, 0.3f).SetEase(Ease.InSine);
         rectTransform.DORotate(new Vector3(0, 0, targetRot), 0.3f).OnComplete(() => 
         {
-            // 2. Changement des données (pendant que la carte est invisible)
-            GameplayManager.Instance.UpdateDataOnly();
+            // 2. Changement des données ET vérification s'il reste des cartes
+            bool hasNextCard = GameplayManager.Instance.UpdateDataOnly();
 
-            // 3. Reset position (Scale 0)
-            rectTransform.anchoredPosition = initialCardPos;
-            rectTransform.rotation = Quaternion.identity;
-            rectTransform.localScale = Vector3.zero;
+            if (hasNextCard)
+            {
+                // 3. Reset position (Scale 0)
+                rectTransform.anchoredPosition = initialCardPos;
+                rectTransform.rotation = Quaternion.identity;
+                rectTransform.localScale = Vector3.zero;
 
-            // 4. Apparition (Pop)
-            rectTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+                // 4. Apparition (Pop) de la nouvelle carte
+                rectTransform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+            }
+            else
+            {
+                // S'il n'y a plus de carte, on la remet au centre mais on la laisse invisible (Scale 0)
+                // pour qu'elle soit prête pour la prochaine partie sans gêner le menu de fin.
+                rectTransform.anchoredPosition = initialCardPos;
+                rectTransform.rotation = Quaternion.identity;
+                rectTransform.localScale = Vector3.zero;
+            }
         });
+    }
+    // --- RESET VISUEL POUR LE REPLAY ---
+    // --- RESET VISUEL POUR LE REPLAY ---
+    public void ResetCardVisually()
+    {
+        // SÉCURITÉ : Si la carte n'a pas encore eu le temps de faire son Awake()
+        if (rectTransform == null)
+        {
+            rectTransform = GetComponent<RectTransform>();
+            initialCardPos = rectTransform.anchoredPosition;
+        }
+
+        // On stoppe toute animation potentiellement bloquée
+        rectTransform.DOKill(); 
+        
+        // On remet la carte bien au centre, droite, et surtout visible !
+        rectTransform.anchoredPosition = initialCardPos;
+        rectTransform.rotation = Quaternion.identity;
+        rectTransform.localScale = Vector3.one; 
     }
 }
