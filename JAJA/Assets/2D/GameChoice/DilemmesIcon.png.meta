@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9089509a8c1123d488d4b2a179aff754
+guid: a99af65d0c079054ca66000cb75def07
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7126550699675485226
-    second: Sips_0
+      213: 1070922987702568294
+    second: TupreferesIcon_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,17 +122,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Sips_0
+      name: TupreferesIcon_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 1
-        width: 200
-        height: 69
+        y: 3
+        width: 144
+        height: 129
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a2408ff6a1896e260800000000000000
-      internalID: 7126550699675485226
+      spriteID: 665cfc788ceacde00800000000000000
+      internalID: 1070922987702568294
       vertices: []
       indices: 
       edges: []
@@ -161,7 +174,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Sips_0: 7126550699675485226
+      TupreferesIcon_0: 1070922987702568294
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

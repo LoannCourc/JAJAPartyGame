@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a99af65d0c079054ca66000cb75def07
+guid: 85d8d2d4ff093ae4583b72c855a8a9ac
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1070922987702568294
-    second: TupreferesIcon_0
+      213: 9109593043190262299
+    second: JenaijamaisIcon_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,17 +122,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: TupreferesIcon_0
+      name: JenaijamaisIcon_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 3
-        width: 144
-        height: 129
+        x: 3
+        y: 0
+        width: 139
+        height: 144
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 665cfc788ceacde00800000000000000
-      internalID: 1070922987702568294
+      spriteID: b1aa9bbab96cb6e70800000000000000
+      internalID: 9109593043190262299
       vertices: []
       indices: 
       edges: []
@@ -161,7 +174,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      TupreferesIcon_0: 1070922987702568294
+      JenaijamaisIcon_0: 9109593043190262299
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

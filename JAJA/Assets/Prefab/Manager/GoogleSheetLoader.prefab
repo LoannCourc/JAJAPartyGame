@@ -54,15 +54,14 @@ MonoBehaviour:
     gameDescription: "Une question impossible, 1 chance sur 2 d'avoir la r\xE9ponse,
       mentez aux autres !"
     gameIcon: {fileID: 21300000, guid: 6cb867131d0a2c446baaf076cfe759fc, type: 3}
-  - gameName: "Action ou v\xE9rit\xE9"
+  - gameName: L'interrogatoire
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=570169031&single=true&output=csv
-    gameDescription: "Le classique ! R\xE9ponds \xE0 une v\xE9rit\xE9 ou fais une
-      action ;)"
+    gameDescription: "Choisissez entre r\xE9pondre \xE0 des questions ou relever
+      des d\xE9fis."
     gameIcon: {fileID: 21300000, guid: af909e55b5dc32a45aeb99263fc95824, type: 3}
-  - gameName: Je n'ai jamais
+  - gameName: "D\xE9j\xE0 fait"
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=94083162&single=true&output=csv
-    gameDescription: "Une phrase commence par \"Je n'ai jamais\". Celui qui a d\xE9j\xE0
-      perd. "
+    gameDescription: "Celui qui a d\xE9j\xE0 r\xE9alis\xE9 l'action perd."
     gameIcon: {fileID: 21300000, guid: 85d8d2d4ff093ae4583b72c855a8a9ac, type: 3}
   - gameName: Petit Bac
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=897321518&single=true&output=csv
@@ -72,13 +71,14 @@ MonoBehaviour:
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=2090329714&single=true&output=csv
     gameDescription: Qui sera le meilleur joueur de cette partie ?
     gameIcon: {fileID: 21300000, guid: 1e692f6f3ec187744a5f7ff3876bc387, type: 3}
-  - gameName: Qui pourrait
+  - gameName: Qui en est capable
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=1219249046&single=true&output=csv
-    gameDescription: "D\xE9signez la personne qui pourrait effectuer cette action."
+    gameDescription: "D\xE9signez la personne qui serait capable d'effectuer cette
+      action."
     gameIcon: {fileID: 21300000, guid: a720baba4fc5d7349bc96a3c56077bae, type: 3}
-  - gameName: "Tu pr\xE9f\xE8res"
+  - gameName: Dilemmes
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=790440497&single=true&output=csv
-    gameDescription: "Deux choix, une d\xE9cision, \xE0 vous de choisir."
+    gameDescription: "Deux choix, une d\xE9cision, \xE0 vous de la faire."
     gameIcon: {fileID: 21300000, guid: a99af65d0c079054ca66000cb75def07, type: 3}
   - gameName: Culture G
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=594782963&single=true&output=csv
@@ -95,3 +95,4 @@ MonoBehaviour:
       sinon c'est perdu.
     gameIcon: {fileID: 21300000, guid: 00c582a4f16014b4eacce4d04950a3fb, type: 3}
   inspectorDatabase: []
+  noConnectionIcon: {fileID: 0}

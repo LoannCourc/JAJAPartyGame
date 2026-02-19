@@ -15,13 +15,13 @@ public class GameplayManager : MonoBehaviour
     public static GameplayManager Instance;
 
     [Header("Configuration")]
-    public SwipeCard swipeCardController; // À glisser dans l'inspecteur
+    public SwipeCard swipeCardController; 
     [SerializeField] private List<DifficultyIcon> difficultyIcons = new List<DifficultyIcon>();
     [SerializeField] private Sprite defaultIcon;
 
     [Header("UI References")]
     public TMP_Text titleText;
-    public TMP_Text sipsDisplay;
+    private TMP_Text penaltiesDisplay;
     public Image difficultyIconImage;
     public Slider questionSlider;
     public TMP_Text questionText;
@@ -33,6 +33,8 @@ public class GameplayManager : MonoBehaviour
     private List<QuestionData> currentDeck = new List<QuestionData>();
     private string currentHiddenInfo = "";
 
+    public TMP_Text PenaltiesDisplay { get => penaltiesDisplay; set => penaltiesDisplay = value; }
+
     void Awake() { Instance = this; }
 
     public void StartGameSession(List<QuestionData> deck)
@@ -40,7 +42,6 @@ public class GameplayManager : MonoBehaviour
         currentDeck = new List<QuestionData>(deck);
         currentIndex = 0;
 
-        // NOUVEAU : On s'assure que la carte réapparaît à sa taille normale
         if (swipeCardController != null)
         {
             swipeCardController.ResetCardVisually();
@@ -48,60 +49,54 @@ public class GameplayManager : MonoBehaviour
 
         DisplayQuestionData();
     }
+
     public void ReplayGame()
     {
-        // 1. On vide l'historique de navigation pour être propre
         NavigationManager.Instance.ResetHistoryAndOpen(NavigationManager.Instance.gamePanel);
-
-        // 2. On demande au LevelManager de tout refaire (Piocher, Filtrer, Mélanger, Insérer Événements)
-        // Il utilisera les paramètres (Difficulté, Mode) qui sont toujours stockés dans le GameManager
         LevelManager.Instance.PrepareGame();
     }
 
     public void ReturnToMenu()
     {
-        // On vide l'historique avant de retourner au début pour repartir sur une base propre
         NavigationManager.Instance.ResetHistoryAndOpen(NavigationManager.Instance.startMenu);
     }
-    // --- NAVIGATION ---
 
     public void NextQuestion()
     {
-        swipeCardController.PerformFullSwipe(true);
+        if (swipeCardController != null)
+            swipeCardController.PerformFullSwipe(true);
     }
 
-    // Appelée par le script SwipeCard une fois l'animation de sortie terminée
     public bool UpdateDataOnly()
     {
         currentIndex++;
 
         if (currentIndex < currentDeck.Count)
         {
-            // Il reste des cartes, on met à jour l'affichage
             DisplayQuestionData();
             return true; 
         }
         else
         {
-            // C'est la fin du paquet ! On ouvre le menu de fin
             NavigationManager.Instance.OpenEndMenu();
             return false; 
         }
     }
-
-    // --- LOGIQUE D'AFFICHAGE ---
 
     private void DisplayQuestionData()
     {
         if (currentDeck == null || currentDeck.Count <= currentIndex) return;
         QuestionData q = currentDeck[currentIndex];
 
-        // Reset de l'interface pour la nouvelle question
         UpdateDifficultyIcon(q.difficulty);
-        if (SettingsManager.Instance != null) sipsDisplay.gameObject.SetActive(SettingsManager.Instance.showSips);
+        
+        // Utilisation de showPenalties (SettingsManager)
+        if (SettingsManager.Instance != null && PenaltiesDisplay != null) 
+            PenaltiesDisplay.gameObject.SetActive(SettingsManager.Instance.showPenalties);
 
         titleText.text = q.gameType;
-        sipsDisplay.text = q.sips;
+        if (PenaltiesDisplay != null) PenaltiesDisplay.text = q.penalties; // Utilisation de q.penalties
+        
         questionSlider.value = (float)(currentIndex + 1) / currentDeck.Count;
 
         revealButton.SetActive(false);
@@ -117,7 +112,7 @@ public class GameplayManager : MonoBehaviour
         string mode = q.gameType.ToLower();
         string cleanedQuestion = CleanText(q.text);
 
-        if (mode.Contains("préfère"))
+        if (mode.Contains("dilemme"))
         {
             questionText.text = $"{CleanText(q.option1)}\n<color=#780000><size=80%>— OU —</size></color>\n{CleanText(q.option2)}";
         }
@@ -130,7 +125,6 @@ public class GameplayManager : MonoBehaviour
             revealButton.SetActive(true);
             revealButton.GetComponentInChildren<TMP_Text>().text = "Afficher la réponse";
             questionText.text = cleanedQuestion;
-            // On pré-calcule la réponse cachée
             currentHiddenInfo = (Random.Range(0, 2) == 0) ? CleanText(q.option1) : "<color=#780000>Invente une réponse !</color>";
         }
         else if (mode.Contains("culture"))
@@ -155,45 +149,43 @@ public class GameplayManager : MonoBehaviour
     public void OnClickReveal()
     {
         string mode = titleText.text.ToLower();
-        TMP_Text buttonText = revealButton.GetComponentInChildren<TMP_Text>();
+        TMP_Text btnText = revealButton.GetComponentInChildren<TMP_Text>();
         QuestionData q = currentDeck[currentIndex];
 
         if (mode.Contains("culture"))
         {
-            if (buttonText.text == "Voir la réponse")
+            if (btnText.text == "Voir la réponse")
             {
                 questionText.text = "<color=#780000>RÉPONSE :</color>\n\n" + CleanText(q.option1);
-                buttonText.text = "Voir la question";
+                btnText.text = "Voir la question";
             }
             else
             {
                 questionText.text = CleanText(q.text);
-                buttonText.text = "Voir la réponse";
+                btnText.text = "Voir la réponse";
             }
         }
         else if (mode.Contains("mytho"))
         {
-            if (buttonText.text == "Afficher la réponse")
+            if (btnText.text == "Afficher la réponse")
             {
                 questionText.text = currentHiddenInfo;
-                buttonText.text = "Voir la question";
+                btnText.text = "Voir la question";
             }
             else
             {
                 questionText.text = CleanText(q.text);
-                buttonText.text = "Afficher la réponse";
+                btnText.text = "Afficher la réponse";
             }
         }
         else if (mode.Contains("bac"))
         {
-            // Pour le bac on peut changer de lettre à chaque clic
             currentHiddenInfo = GetRandomLetter();
             extraInfoText.gameObject.SetActive(true);
             extraInfoText.text = "<size=150%>" + currentHiddenInfo + "</size>";
-            buttonText.text = "Nouvelle lettre";
+            btnText.text = "Nouvelle lettre";
         }
     }
-
 
     private void UpdateDifficultyIcon(string difficulty)
     {
@@ -220,7 +212,7 @@ public class GameplayManager : MonoBehaviour
             playerText.text = "<color=#780000>" + CleanText(q.option1) + "</color>";
             playerText.gameObject.SetActive(true);
         }
-        else if (mode.Contains("action") || mode.Contains("vérité") || mode.Contains("culture") || mode.Contains("qui est qui") || mode.Contains("mytho"))
+        else if (mode.Contains("interrogatoire") || mode.Contains("culture") || mode.Contains("qui est qui") || mode.Contains("mytho"))
         {
             string p = (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
                 ? GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)]
@@ -233,10 +225,5 @@ public class GameplayManager : MonoBehaviour
     }
 
     private string CleanText(string input) => string.IsNullOrEmpty(input) ? "" : input.Replace("\"\"", "\"");
-
-    private string GetRandomLetter()
-    {
-        string chars = "ABCDEFGHIJKLMNOPRST";
-        return chars[Random.Range(0, chars.Length)].ToString();
-    }
+    private string GetRandomLetter() { return "ABCDEFGHIJKLMNOPRST"[Random.Range(0, 19)].ToString(); }
 }
