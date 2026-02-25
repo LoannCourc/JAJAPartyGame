@@ -54,15 +54,11 @@ MonoBehaviour:
     gameDescription: "Une question impossible, 1 chance sur 2 d'avoir la r\xE9ponse,
       mentez aux autres !"
     gameIcon: {fileID: 21300000, guid: 6cb867131d0a2c446baaf076cfe759fc, type: 3}
-  - gameName: L'interrogatoire
-    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=570169031&single=true&output=csv
-    gameDescription: "Choisissez entre r\xE9pondre \xE0 des questions ou relever
-      des d\xE9fis."
-    gameIcon: {fileID: 21300000, guid: af909e55b5dc32a45aeb99263fc95824, type: 3}
-  - gameName: "D\xE9j\xE0 fait"
-    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=94083162&single=true&output=csv
-    gameDescription: "Celui qui a d\xE9j\xE0 r\xE9alis\xE9 l'action perd."
-    gameIcon: {fileID: 21300000, guid: 85d8d2d4ff093ae4583b72c855a8a9ac, type: 3}
+  - gameName: "Ench\xE8res"
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=26778154&single=true&output=csv
+    gameDescription: Misez sur l'action, le gagnant doit prouver qu'il peut le faire,
+      sinon c'est perdu.
+    gameIcon: {fileID: 21300000, guid: 00c582a4f16014b4eacce4d04950a3fb, type: 3}
   - gameName: Petit Bac
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=897321518&single=true&output=csv
     gameDescription: "Un th\xE8me, une lettre, le plus rapide l'emporte."
@@ -76,10 +72,19 @@ MonoBehaviour:
     gameDescription: "D\xE9signez la personne qui serait capable d'effectuer cette
       action."
     gameIcon: {fileID: 21300000, guid: a720baba4fc5d7349bc96a3c56077bae, type: 3}
+  - gameName: "D\xE9j\xE0 fait"
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=94083162&single=true&output=csv
+    gameDescription: "Celui qui a d\xE9j\xE0 r\xE9alis\xE9 l'action perd."
+    gameIcon: {fileID: 21300000, guid: 85d8d2d4ff093ae4583b72c855a8a9ac, type: 3}
   - gameName: Dilemmes
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=790440497&single=true&output=csv
     gameDescription: "Deux choix, une d\xE9cision, \xE0 vous de la faire."
     gameIcon: {fileID: 21300000, guid: a99af65d0c079054ca66000cb75def07, type: 3}
+  - gameName: L'interrogatoire
+    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=570169031&single=true&output=csv
+    gameDescription: "Choisissez entre r\xE9pondre \xE0 des questions ou relever
+      des d\xE9fis."
+    gameIcon: {fileID: 21300000, guid: af909e55b5dc32a45aeb99263fc95824, type: 3}
   - gameName: Culture G
     url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=594782963&single=true&output=csv
     gameDescription: Viens tester tes connaissances.
@@ -89,10 +94,5 @@ MonoBehaviour:
     gameDescription: "4 propositions, \xE0 qui ressemble le plus la personne d\xE9sign\xE9e
       ?"
     gameIcon: {fileID: 21300000, guid: ec3dd807f4bb54044922ebc37081549b, type: 3}
-  - gameName: "Ench\xE8res"
-    url: https://docs.google.com/spreadsheets/d/e/2PACX-1vTIv_hctiYOoTsjdLxMGs12oQjYjOQc1fF_lWc2IgVGHIym57epCLmBqgY_3rGhhg/pub?gid=26778154&single=true&output=csv
-    gameDescription: Misez sur l'action, le gagnant doit prouver qu'il peut le faire,
-      sinon c'est perdu.
-    gameIcon: {fileID: 21300000, guid: 00c582a4f16014b4eacce4d04950a3fb, type: 3}
   inspectorDatabase: []
   noConnectionIcon: {fileID: 0}

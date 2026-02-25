@@ -3969,19 +3969,19 @@ MonoBehaviour:
     - m_Text: Le meilleur
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Qui pourrait
+    - m_Text: Qui en est capable
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: "Action ou v\xE9rit\xE9"
+    - m_Text: L'interrogatoire
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Je n'ai jamais
+    - m_Text: "D\xE9j\xE0 fait"
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Petit Bac
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: "Tu pr\xE9f\xE8res"
+    - m_Text: Dilemmes
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Culture G
@@ -18123,9 +18123,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Au tour de :
-
-    Camille'
+  m_text: "\xC0 qui ressemble :\nCamille"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5b06bd8c1c2c9d2449afd599e4945bf4, type: 2}
   m_sharedMaterial: {fileID: 1919669587626804801, guid: 5b06bd8c1c2c9d2449afd599e4945bf4, type: 2}
@@ -18152,7 +18150,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60
+  m_fontSize: 58.7
   m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -18869,7 +18867,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -50, y: 0.0044555664}
+  m_AnchoredPosition: {x: -50, y: 0.008972168}
   m_SizeDelta: {x: 100, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1643667056

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections; // Nécessaire pour les Coroutines
+using System.Collections;
 
 public class PremiumManager : MonoBehaviour
 {
@@ -12,8 +12,8 @@ public class PremiumManager : MonoBehaviour
     public TMP_Text buttonText;
 
     [Header("Effets Visuels")]
-    public ParticleSystem fireworksLeft;  // Glisse ton premier système de particules ici
-    public ParticleSystem fireworksRight; // Glisse ton deuxième système de particules ici
+    public ParticleSystem fireworksLeft;  
+    public ParticleSystem fireworksRight; 
     [Tooltip("Délai entre les 3 explosions de particules")]
     public float burstDelay = 0.3f;
 
@@ -34,6 +34,12 @@ public class PremiumManager : MonoBehaviour
         InitializePremiumStatus();
     }
 
+    // NOUVEAU : On utilise Start pour s'assurer que les références UI sont prêtes
+    void Start()
+    {
+        UpdateUIStatus();
+    }
+
     private void InitializePremiumStatus()
     {
 #if UNITY_EDITOR
@@ -43,13 +49,26 @@ public class PremiumManager : MonoBehaviour
 #endif
     }
 
+    // NOUVEAU : Méthode pour rafraîchir l'UI sans lancer d'effets
+    private void UpdateUIStatus()
+    {
+        if (IsUserPremium)
+        {
+            if (buyPremiumButton != null) buyPremiumButton.interactable = false;
+            if (buttonText != null) buttonText.text = "Mode Premium débloqué !";
+        }
+    }
+
     public void UnlockPremium()
     {
+        // Si l'utilisateur est déjà premium, on ne fait rien (sécurité)
+        if (IsUserPremium) return;
+
         IsUserPremium = true;
         PlayerPrefs.SetInt("IsPremium", 1);
         PlayerPrefs.Save();
 
-        // Lancer les feux d'artifice
+        // On lance les effets uniquement lors de l'achat/déblocage actif
         StartCoroutine(PlayPremiumEffects());
 
         if (GoogleSheetLoader.Instance != null)
@@ -57,22 +76,12 @@ public class PremiumManager : MonoBehaviour
             StartCoroutine(GoogleSheetLoader.Instance.ReloadForPremium());
         }
 
-        if (buyPremiumButton != null)
-        {
-            buyPremiumButton.interactable = false;
-        }
-
-        if (buttonText != null)
-        {
-            buttonText.text = "Mode Premium débloqué !";
-        }    
+        // On met à jour l'UI
+        UpdateUIStatus();
     }
 
-    // Coroutine pour jouer les particules 3 fois rapidement
     private IEnumerator PlayPremiumEffects()
     {
-        Debug.Log("Je passe icic");
-
         for (int i = 0; i < 3; i++)
         {
             if (fireworksLeft != null) fireworksLeft.Play();
@@ -86,5 +95,9 @@ public class PremiumManager : MonoBehaviour
     {
         PlayerPrefs.DeleteKey("IsPremium");
         IsUserPremium = false;
+        
+        // Optionnel : remettre le bouton en état cliquable
+        if (buyPremiumButton != null) buyPremiumButton.interactable = true;
+        if (buttonText != null) buttonText.text = "Acheter le Premium"; 
     }
 }

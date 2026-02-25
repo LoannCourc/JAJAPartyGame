@@ -21,7 +21,7 @@ public class GameplayManager : MonoBehaviour
 
     [Header("UI References")]
     public TMP_Text titleText;
-    private TMP_Text penaltiesDisplay;
+    [SerializeField] private TMP_Text penaltiesDisplay;
     public Image difficultyIconImage;
     public Slider questionSlider;
     public TMP_Text questionText;
@@ -212,13 +212,22 @@ public class GameplayManager : MonoBehaviour
             playerText.text = "<color=#780000>" + CleanText(q.option1) + "</color>";
             playerText.gameObject.SetActive(true);
         }
-        else if (mode.Contains("interrogatoire") || mode.Contains("culture") || mode.Contains("qui est qui") || mode.Contains("mytho"))
+        else if (mode.Contains("interrogatoire") || mode.Contains("culture") || mode.Contains("mytho"))
         {
             string p = (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
                 ? GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)]
                 : "Tout le monde";
 
             playerText.text = "C'est au tour de : <color=#780000>" + p + "</color>";
+            playerText.gameObject.SetActive(true);
+        }
+         else if (mode.Contains("qui est qui"))
+        {
+            string p = (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
+                ? GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)]
+                : "Tout le monde";
+
+            playerText.text = "À qui ressemble : \n<color=#780000>" + p + "</color>";
             playerText.gameObject.SetActive(true);
         }
         else playerText.gameObject.SetActive(false);

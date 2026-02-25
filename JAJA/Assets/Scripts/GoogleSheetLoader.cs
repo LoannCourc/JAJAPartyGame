@@ -12,26 +12,26 @@ public class QuestionData { public string gameType, text, option1, option2, diff
 public class GameCategory { public string categoryName; public List<QuestionData> questions = new List<QuestionData>(); }
 
 [System.Serializable]
-public class SheetLink 
-{ 
-    public string gameName, url; 
-    [TextArea(2, 5)] public string gameDescription; 
-    public Sprite gameIcon; 
+public class SheetLink
+{
+    public string gameName, url;
+    [TextArea(2, 5)] public string gameDescription;
+    public Sprite gameIcon;
 }
 
 public class GoogleSheetLoader : MonoBehaviour
 {
     public static GoogleSheetLoader Instance;
-    
+
     [Header("Configuration")]
     public List<SheetLink> sheetConfigs;
-    
+
     [Header("Visualisation")]
     public List<GameCategory> inspectorDatabase = new List<GameCategory>();
-    
+
     [Header("UI Feedback Connexion")]
-    public GameObject noConnectionIcon; 
-    
+    public GameObject noConnectionIcon;
+
     public Dictionary<string, List<QuestionData>> gameDatabase = new Dictionary<string, List<QuestionData>>();
     public Dictionary<string, string> gameDescriptions = new Dictionary<string, string>();
     public Dictionary<string, Sprite> gameIcons = new Dictionary<string, Sprite>();
@@ -39,11 +39,11 @@ public class GoogleSheetLoader : MonoBehaviour
     public bool isDataLoaded { get; private set; } = false;
 
     void Awake() { if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); } else Destroy(gameObject); }
-    
-    void Start() 
-    { 
+
+    void Start()
+    {
         if (noConnectionIcon != null) noConnectionIcon.SetActive(false);
-        StartCoroutine(CheckConnectionAndLoad()); 
+        StartCoroutine(CheckConnectionAndLoad());
     }
 
     IEnumerator CheckConnectionAndLoad()
@@ -84,7 +84,7 @@ public class GoogleSheetLoader : MonoBehaviour
         List<Coroutine> activeCoroutines = new List<Coroutine>();
         foreach (SheetLink config in sheetConfigs) activeCoroutines.Add(StartCoroutine(DownloadData(config.url, config.gameName)));
         foreach (var coroutine in activeCoroutines) yield return coroutine;
-        
+
         LoadLocalCustomQuestions();
         UpdateInspectorList();
         isDataLoaded = true;
@@ -113,11 +113,13 @@ public class GoogleSheetLoader : MonoBehaviour
         {
             string line = lines[i].Trim();
             if (string.IsNullOrEmpty(line)) continue;
-            string[] cols = line.Split(','); 
 
-            if (cols.Length >= 6)
+            string[] cols = line.Split(',');
+
+            // On vérifie qu'on a bien nos 8 colonnes (0 à 7)
+            if (cols.Length >= 8)
             {
-                string diffRaw = cols[4].Trim();
+                string diffRaw = cols[3].Trim();
                 string diffKey = diffRaw.ToLower();
 
                 if (!isPremium)
@@ -128,12 +130,28 @@ public class GoogleSheetLoader : MonoBehaviour
                 }
 
                 QuestionData q = new QuestionData { gameType = targetGameName, difficulty = diffRaw };
-                string rawText = cols[5].Trim().Replace("|", "\n");
-                string col6 = (cols.Length > 6) ? cols[6].Trim() : "";
-                string col7 = (cols.Length > 7) ? cols[7].Trim() : "1";
+                string lowGameName = targetGameName.ToLower();
 
-                if (targetGameName.ToLower().Contains("dilemme")) { q.option1 = rawText; q.option2 = col6; q.penalties = col7; }
-                else { q.text = rawText; q.option1 = col6; q.penalties = col7; }
+                // --- CAS 1 : DILEMME (Structure : Opt1 en 5, Opt2 en 6, Malus en 7) ---
+                if (lowGameName.Contains("dilemme"))
+                {
+                    q.option1 = cols[5].Trim();
+                    q.option2 = cols[6].Trim();
+                    q.penalties = cols[7].Trim();
+                }
+                // --- CAS 2 : CULTURE G ou MYTHO (Structure : Question en 5, Réponse en 6, Malus en 7) ---
+                else if (lowGameName.Contains("culture") || lowGameName.Contains("mytho"))
+                {
+                    q.text = cols[5].Trim().Replace("|", "\n");
+                    q.option1 = cols[6].Trim(); // La réponse s'affiche via option1
+                    q.penalties = cols[7].Trim();
+                }
+                // --- CAS PAR DÉFAUT (Révélations, Désignations... : Texte en 5, Vide en 6, Malus en 7) ---
+                else
+                {
+                    q.text = cols[5].Trim().Replace("|", "\n");
+                    q.penalties = cols[7].Trim();
+                }
 
                 gameDatabase[targetGameName].Add(q);
             }
@@ -151,10 +169,11 @@ public class GoogleSheetLoader : MonoBehaviour
         {
             foreach (var q in localList.questions)
             {
-                QuestionData convertedQ = new QuestionData { 
-                    gameType = q.gameType, 
-                    penalties = q.penalties.ToString(), 
-                    difficulty = q.difficulty + " (custom)" 
+                QuestionData convertedQ = new QuestionData
+                {
+                    gameType = q.gameType,
+                    penalties = q.penalties.ToString(),
+                    difficulty = q.difficulty + " (custom)"
                 };
 
                 if (q.gameType.ToLower().Contains("dilemme") && q.text.Contains(" | "))
