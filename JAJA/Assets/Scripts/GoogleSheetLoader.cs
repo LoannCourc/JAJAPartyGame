@@ -88,7 +88,6 @@ public class GoogleSheetLoader : MonoBehaviour
         LoadLocalCustomQuestions();
         UpdateInspectorList();
         isDataLoaded = true;
-        Debug.Log("--- CHARGEMENT TERMINÉ (100%) ---");
     }
 
     IEnumerator DownloadData(string url, string targetGameName)
@@ -119,7 +118,7 @@ public class GoogleSheetLoader : MonoBehaviour
             // On vérifie qu'on a bien nos 8 colonnes (0 à 7)
             if (cols.Length >= 8)
             {
-                string diffRaw = cols[3].Trim();
+                string diffRaw = cols[4].Trim();
                 string diffKey = diffRaw.ToLower();
 
                 if (!isPremium)
