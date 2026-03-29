@@ -23,6 +23,10 @@ public class SettingsManager : MonoBehaviour
     public string instagramURL = "https://www.instagram.com/ton_compte/";
     public string tiktokURL = "https://www.tiktok.com/@ton_compte";
 
+    [Header("Lien Page Store")]
+    public string pageStoreGoogleURL = "https://www.instagram.com/ton_compte/";
+    public string pageStoreAppleURL = "https://www.tiktok.com/@ton_compte";
+
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
@@ -41,6 +45,18 @@ public class SettingsManager : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(tiktokURL))
             Application.OpenURL(tiktokURL);
+    }
+
+    public void OpenPageStoreGoogle()
+    {
+        if (!string.IsNullOrEmpty(pageStoreGoogleURL))
+            Application.OpenURL(pageStoreGoogleURL);
+    }
+
+    public void OpenPageStoreApple()
+    {
+        if (!string.IsNullOrEmpty(pageStoreAppleURL))
+            Application.OpenURL(pageStoreAppleURL);
     }
 
     // --- SAUVEGARDE ET CHARGEMENT ---
