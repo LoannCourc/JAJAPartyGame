@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public string selectedGameMode;
     public string selectedDifficulty = "Aléatoire";
     public int questionCount = 20;
-    public int maxPlayers = 10; // Assure-toi que c'est bien à 10
+    public int maxPlayers = 10;
 
     [Header("UI Filtres")]
     public TMP_Text questionCountText;
@@ -55,7 +55,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Permet de synchroniser la liste d'un coup (utile pour suppression ou fin de saisie)
     public void SyncFinalList(List<string> newList)
     {
         playerNames = new List<string>(newList);
@@ -67,7 +66,7 @@ public class GameManager : MonoBehaviour
     {
         if (playerNames.Count < maxPlayers && !string.IsNullOrEmpty(name))
         {
-            if(!playerNames.Contains(name)) // Sécurité doublon
+            if(!playerNames.Contains(name)) 
             {
                 playerNames.Add(name);
                 SavePlayersToDisk();
@@ -75,24 +74,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // --- LOGIQUE DE JEU & UI (Le reste du code est identique) ---
-    public void SelectGame(string gameName)
+    // --- LOGIQUE DE JEU & UI ---
+    public void SelectGame(string gameKey)
     {
-        selectedGameMode = gameName;
-        UpdateDifficultyDropdown(gameName);
+        selectedGameMode = gameKey;
+        UpdateDifficultyDropdown(gameKey);
     }
 
-    public void UpdateDifficultyDropdown(string gameName)
+    public void UpdateDifficultyDropdown(string gameKey)
     {
         if (difficultyDropdown == null) return;
         difficultyDropdown.ClearOptions();
         List<string> optionsAAfficher;
         bool isUnique = false;
 
-        // Listes internes pour éviter les erreurs de référence
-        if (gameName == "Enchères" || gameName == "Culture G" || gameName == "Petit bac")
+        string lowerKey = gameKey.ToLower();
+
+        if (lowerKey.Contains("enchère") || lowerKey.Contains("culture g") || lowerKey.Contains("petit bac"))
             optionsAAfficher = new List<string> { "Aléatoire", "Facile", "Moyen", "Difficile" };
-        else if (gameName == "Mytho ou réalité" || gameName == "Qui est qui ?")
+        else if (lowerKey.Contains("mytho") || lowerKey.Contains("qui est qui"))
         {
             optionsAAfficher = new List<string> { "Unique" };
             isUnique = true;
@@ -100,18 +100,36 @@ public class GameManager : MonoBehaviour
         else
             optionsAAfficher = new List<string> { "Aléatoire", "Facile", "Difficile", "Hot" };
 
-        difficultyDropdown.AddOptions(optionsAAfficher);
+        // Traduction des options dans le dropdown
+        List<string> localizedOptions = new List<string>();
+        foreach(string opt in optionsAAfficher) {
+            localizedOptions.Add(LocalizationManager.Instance.GetText("diff_" + opt.ToLower()));
+        }
+
+        difficultyDropdown.AddOptions(localizedOptions);
         difficultyDropdown.value = 0;
         selectedDifficulty = optionsAAfficher[0];
         difficultyDropdown.RefreshShownValue();
         difficultyDropdown.interactable = !isUnique;
+
         if (arrowIcon != null) arrowIcon.enabled = !isUnique;
     }
 
     public void SetDifficulty(int index)
     {
-        if (difficultyDropdown != null)
-            selectedDifficulty = difficultyDropdown.options[index].text;
+        // On stocke la difficulté interne (pas la traduite) pour le tri
+        string lowerKey = selectedGameMode.ToLower();
+        List<string> optionsAAfficher;
+
+        if (lowerKey.Contains("enchère") || lowerKey.Contains("culture g") || lowerKey.Contains("petit bac"))
+            optionsAAfficher = new List<string> { "Aléatoire", "Facile", "Moyen", "Difficile" };
+        else if (lowerKey.Contains("mytho") || lowerKey.Contains("qui est qui"))
+            optionsAAfficher = new List<string> { "Unique" };
+        else
+            optionsAAfficher = new List<string> { "Aléatoire", "Facile", "Difficile", "Hot" };
+
+        if (index >= 0 && index < optionsAAfficher.Count)
+            selectedDifficulty = optionsAAfficher[index];
     }
 
     public void SetQuestionCount(float value)
@@ -124,20 +142,16 @@ public class GameManager : MonoBehaviour
     public string GetDifficultyMapping(string gameInsideMix)
     {
         string subGame = gameInsideMix.ToLower();
-
-        if (selectedGameMode == "On mixe ?")
+        if (selectedGameMode.ToLower().Contains("mixe"))
         {
             if (selectedDifficulty == "Hot")
             {
-                if (subGame.Contains("culture g") || subGame.Contains("enchères")) 
+                if (subGame.Contains("culture") || subGame.Contains("enchère")) 
                     return "Difficile";
-                
                 if (subGame.Contains("qui est qui") || subGame.Contains("mytho")) 
                     return "Unique";
             }
-            
-            // Logique existante pour Difficile -> Moyen
-            if (subGame.Contains("culture g") || subGame.Contains("enchères") || subGame.Contains("petit bac"))
+            if (subGame.Contains("culture") || subGame.Contains("enchère") || subGame.Contains("petit bac"))
             {
                 if (selectedDifficulty == "Difficile") return "Moyen";
             }

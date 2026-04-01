@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening; 
+using DG.Tweening;
 
 public class GameMenuManager : MonoBehaviour
 {
@@ -16,9 +16,9 @@ public class GameMenuManager : MonoBehaviour
     public TMP_Text selectedGameTitle;
 
     [Header("Animation Settings")]
-    public float startDelay = 0.35f;      // Temps d'attente après l'ouverture du menu
-    public float popDuration = 0.4f;      // Durée du pop de chaque carte
-    public float delayBetweenCards = 0.08f; // Délai entre chaque carte (effet cascade)
+    public float startDelay = 0.35f;
+    public float popDuration = 0.4f;
+    public float delayBetweenCards = 0.08f;
     public Ease popEase = Ease.OutBack;
 
     private bool isAnimating = false;
@@ -33,7 +33,6 @@ public class GameMenuManager : MonoBehaviour
     {
         if (NavigationManager.Instance != null)
             NavigationManager.Instance.OnMenuOpened -= CheckIfIDisplay;
-        
         isAnimating = false;
         StopAllCoroutines();
     }
@@ -49,12 +48,9 @@ public class GameMenuManager : MonoBehaviour
     public void DisplayGames()
     {
         if (isAnimating) StopAllCoroutines();
-
         isAnimating = true;
-        // On ne Kill pas TOUT le DOTween pour ne pas casser l'anim du NavigationManager
-        // On Kill juste les anims sur le container
-        container.DOKill(); 
         
+        container.DOKill();
         foreach (Transform child in container) Destroy(child.gameObject);
 
         StartCoroutine(SpawnCardsRoutine());
@@ -62,52 +58,53 @@ public class GameMenuManager : MonoBehaviour
 
     IEnumerator SpawnCardsRoutine()
     {
-        // On attend que le panneau parent ait presque fini son animation
         yield return new WaitForSeconds(startDelay);
 
         foreach (var config in GoogleSheetLoader.Instance.sheetConfigs)
         {
-            string gameName = config.gameName;
-            if (!GoogleSheetLoader.Instance.gameDatabase.ContainsKey(gameName)) continue;
+            if (config.isInterfaceSheet) continue; // On n'affiche pas le sheet de l'UI en tant que jeu
+
+            string gameKey = config.gameKey;
+            if (!GoogleSheetLoader.Instance.gameDatabase.ContainsKey(gameKey)) continue;
 
             GameObject go = Instantiate(gameCardPrefab, container);
             go.transform.localScale = Vector3.zero;
 
-            SetupCardData(go, gameName, config);
+            SetupCardData(go, gameKey, config);
 
-            // Animation individuelle de la carte
             go.transform.DOScale(Vector3.one, popDuration).SetEase(popEase);
-
             yield return new WaitForSeconds(delayBetweenCards);
         }
 
         isAnimating = false;
     }
 
-    private void SetupCardData(GameObject go, string gameName, SheetLink config)
+    private void SetupCardData(GameObject go, string gameKey, SheetLink config)
     {
         TMP_Text title = go.transform.Find("TitleGame")?.GetComponent<TMP_Text>();
         TMP_Text desc = go.transform.Find("GameDescription")?.GetComponent<TMP_Text>();
         Image iconImg = go.transform.Find("GameImage")?.GetComponent<Image>();
         Button btn = go.GetComponent<Button>();
 
-        if (title != null) title.text = gameName;
+        // Le titre prend le nom localisé via la GameKey
+        if (title != null) title.text = LocalizationManager.Instance.GetText(gameKey);
+
         if (desc != null)
         {
-            if (GoogleSheetLoader.Instance.gameDescriptions.ContainsKey(gameName))
-                desc.text = GoogleSheetLoader.Instance.gameDescriptions[gameName];
+            if (GoogleSheetLoader.Instance.gameDescriptions.ContainsKey(gameKey))
+                desc.text = GoogleSheetLoader.Instance.gameDescriptions[gameKey];
             else
                 desc.text = "Lance une partie !";
         }
 
-        if (iconImg != null && GoogleSheetLoader.Instance.gameIcons.ContainsKey(gameName))
-            iconImg.sprite = GoogleSheetLoader.Instance.gameIcons[gameName];
+        if (iconImg != null && GoogleSheetLoader.Instance.gameIcons.ContainsKey(gameKey))
+            iconImg.sprite = GoogleSheetLoader.Instance.gameIcons[gameKey];
 
         btn.onClick.AddListener(() =>
         {
-            GameManager.Instance.selectedGameMode = gameName;
-            GameManager.Instance.SelectGame(gameName);
-            if (selectedGameTitle != null) selectedGameTitle.text = gameName;
+            GameManager.Instance.selectedGameMode = gameKey;
+            GameManager.Instance.SelectGame(gameKey);
+            if (selectedGameTitle != null) selectedGameTitle.text = LocalizationManager.Instance.GetText(gameKey);
             NavigationManager.Instance.OpenFilters();
         });
     }

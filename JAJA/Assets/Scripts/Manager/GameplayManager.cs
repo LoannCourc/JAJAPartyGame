@@ -15,7 +15,7 @@ public class GameplayManager : MonoBehaviour
     public static GameplayManager Instance;
 
     [Header("Configuration")]
-    public SwipeCard swipeCardController; 
+    public SwipeCard swipeCardController;
     [SerializeField] private List<DifficultyIcon> difficultyIcons = new List<DifficultyIcon>();
     [SerializeField] private Sprite defaultIcon;
 
@@ -74,12 +74,12 @@ public class GameplayManager : MonoBehaviour
         if (currentIndex < currentDeck.Count)
         {
             DisplayQuestionData();
-            return true; 
+            return true;
         }
         else
         {
             NavigationManager.Instance.OpenEndMenu();
-            return false; 
+            return false;
         }
     }
 
@@ -89,14 +89,18 @@ public class GameplayManager : MonoBehaviour
         QuestionData q = currentDeck[currentIndex];
 
         UpdateDifficultyIcon(q.difficulty);
-        
-        // Utilisation de showPenalties (SettingsManager)
-        if (SettingsManager.Instance != null && PenaltiesDisplay != null) 
+
+        if (SettingsManager.Instance != null && PenaltiesDisplay != null)
             PenaltiesDisplay.gameObject.SetActive(SettingsManager.Instance.showPenalties);
 
-        titleText.text = q.gameType;
-        if (PenaltiesDisplay != null) PenaltiesDisplay.text = q.penalties; // Utilisation de q.penalties
-        
+        // --- MODIFICATION ICI ---
+        // Au lieu de GameManager.Instance.selectedGameMode, on utilise q.gameType
+        // Cela permet d'afficher le nom du jeu d'où provient la question actuelle.
+        titleText.text = LocalizationManager.Instance.GetText(q.gameType);
+        // -------------------------
+
+        if (PenaltiesDisplay != null) PenaltiesDisplay.text = q.penalties;
+
         questionSlider.value = (float)(currentIndex + 1) / currentDeck.Count;
 
         revealButton.SetActive(false);
@@ -148,9 +152,9 @@ public class GameplayManager : MonoBehaviour
 
     public void OnClickReveal()
     {
-        string mode = titleText.text.ToLower();
         TMP_Text btnText = revealButton.GetComponentInChildren<TMP_Text>();
         QuestionData q = currentDeck[currentIndex];
+        string mode = q.gameType.ToLower();
 
         if (mode.Contains("culture"))
         {
@@ -221,7 +225,7 @@ public class GameplayManager : MonoBehaviour
             playerText.text = "C'est au tour de : <color=#780000>" + p + "</color>";
             playerText.gameObject.SetActive(true);
         }
-         else if (mode.Contains("qui est qui"))
+        else if (mode.Contains("qui est qui"))
         {
             string p = (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
                 ? GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)]
