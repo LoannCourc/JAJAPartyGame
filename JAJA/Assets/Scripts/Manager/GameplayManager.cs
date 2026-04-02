@@ -41,12 +41,7 @@ public class GameplayManager : MonoBehaviour
     {
         currentDeck = new List<QuestionData>(deck);
         currentIndex = 0;
-
-        if (swipeCardController != null)
-        {
-            swipeCardController.ResetCardVisually();
-        }
-
+        if (swipeCardController != null) swipeCardController.ResetCardVisually();
         DisplayQuestionData();
     }
 
@@ -56,34 +51,20 @@ public class GameplayManager : MonoBehaviour
         LevelManager.Instance.PrepareGame();
     }
 
-    public void ReturnToMenu()
-    {
-        NavigationManager.Instance.ResetHistoryAndOpen(NavigationManager.Instance.startMenu);
-    }
+    public void ReturnToMenu() { NavigationManager.Instance.ResetHistoryAndOpen(NavigationManager.Instance.startMenu); }
 
-    public void NextQuestion()
-    {
-        if (swipeCardController != null)
-            swipeCardController.PerformFullSwipe(true);
-    }
+    public void NextQuestion() { if (swipeCardController != null) swipeCardController.PerformFullSwipe(true); }
 
     public bool UpdateDataOnly()
     {
         currentIndex++;
-
-        if (currentIndex < currentDeck.Count)
-        {
-            DisplayQuestionData();
-            return true;
-        }
-        else
-        {
-            NavigationManager.Instance.OpenEndMenu();
-            return false;
-        }
+        if (currentIndex < currentDeck.Count) { DisplayQuestionData(); return true; }
+        else { NavigationManager.Instance.OpenEndMenu(); return false; }
     }
 
-    private void DisplayQuestionData()
+    public void RefreshCurrentQuestion() { DisplayQuestionData(); }
+
+    public void DisplayQuestionData()
     {
         if (currentDeck == null || currentDeck.Count <= currentIndex) return;
         QuestionData q = currentDeck[currentIndex];
@@ -93,11 +74,8 @@ public class GameplayManager : MonoBehaviour
         if (SettingsManager.Instance != null && PenaltiesDisplay != null)
             PenaltiesDisplay.gameObject.SetActive(SettingsManager.Instance.showPenalties);
 
-        // --- MODIFICATION ICI ---
-        // Au lieu de GameManager.Instance.selectedGameMode, on utilise q.gameType
-        // Cela permet d'afficher le nom du jeu d'où provient la question actuelle.
-        titleText.text = LocalizationManager.Instance.GetText(q.gameType);
-        // -------------------------
+        string translatedTitle = LocalizationManager.Instance.GetText(q.gameType);
+        titleText.text = translatedTitle.ToUpper();
 
         if (PenaltiesDisplay != null) PenaltiesDisplay.text = q.penalties;
 
@@ -106,7 +84,8 @@ public class GameplayManager : MonoBehaviour
         revealButton.SetActive(false);
         extraInfoText.gameObject.SetActive(false);
         currentHiddenInfo = "";
-
+        
+        RefreshPenaltiesVisibility();
         SetupTextByMode(q);
         UpdatePlayerTurn(q.gameType.ToLower(), q);
     }
@@ -114,39 +93,59 @@ public class GameplayManager : MonoBehaviour
     private void SetupTextByMode(QuestionData q)
     {
         string mode = q.gameType.ToLower();
-        string cleanedQuestion = CleanText(q.text);
+        string lang = LocalizationManager.Instance.currentLang;
+        var loc = LocalizationManager.Instance;
+
+        string questionTextVal = q.GetText(lang);
+        string answerTextVal = q.GetAnswer(lang);
 
         if (mode.Contains("dilemme"))
         {
-            questionText.text = $"{CleanText(q.option1)}\n<color=#780000><size=80%>— OU —</size></color>\n{CleanText(q.option2)}";
+            string[] parts = questionTextVal.Split('|');
+            string o1 = parts[0].Trim();
+            string o2 = parts.Length > 1 ? parts[1].Trim() : "";
+            questionText.text = $"{o1}\n<color=#780000><size=80%>— {loc.GetText("txt_ou")} —</size></color>\n{o2}";
         }
-        else if (mode.Contains("qui est qui"))
+        else if (mode.Contains("game_qui") || mode.Contains("mytho") || mode.Contains("culture"))
         {
-            questionText.text = "<align=left>• " + cleanedQuestion.Replace("\n", "\n• ") + "</align>";
-        }
-        else if (mode.Contains("mytho"))
-        {
-            revealButton.SetActive(true);
-            revealButton.GetComponentInChildren<TMP_Text>().text = "Afficher la réponse";
-            questionText.text = cleanedQuestion;
-            currentHiddenInfo = (Random.Range(0, 2) == 0) ? CleanText(q.option1) : "<color=#780000>Invente une réponse !</color>";
-        }
-        else if (mode.Contains("culture"))
-        {
-            revealButton.SetActive(true);
-            revealButton.GetComponentInChildren<TMP_Text>().text = "Voir la réponse";
-            questionText.text = cleanedQuestion;
+            if (mode.Contains("game_qui"))
+            {
+                // CORRECTION : On split par '|' et on aligne à gauche avec des puces
+                string[] options = questionTextVal.Split('|');
+                string formatted = "<align=left>";
+                foreach (string opt in options)
+                {
+                    if (!string.IsNullOrWhiteSpace(opt))
+                        formatted += "• " + opt.Trim() + "\n";
+                }
+                questionText.text = formatted + "</align>";
+            }
+            else
+            {
+                questionText.text = questionTextVal;
+            }
+
+            if (!string.IsNullOrEmpty(answerTextVal) || mode.Contains("mytho"))
+            {
+                revealButton.SetActive(true);
+                revealButton.GetComponentInChildren<TMP_Text>().text = loc.GetText(mode.Contains("culture") ? "txt_voirreponse" : "txt_afficherreponse");
+
+                if (mode.Contains("mytho"))
+                    currentHiddenInfo = (Random.Range(0, 2) == 0) ? answerTextVal : $"<color=#780000>{loc.GetText("txt_inventereponse")}</color>";
+                else
+                    currentHiddenInfo = answerTextVal;
+            }
         }
         else if (mode.Contains("bac"))
         {
-            questionText.text = cleanedQuestion;
+            questionText.text = questionTextVal;
             revealButton.SetActive(true);
-            revealButton.GetComponentInChildren<TMP_Text>().text = "Afficher la lettre";
+            revealButton.GetComponentInChildren<TMP_Text>().text = loc.GetText("txt_afficherlettre");
             currentHiddenInfo = GetRandomLetter();
         }
         else
         {
-            questionText.text = cleanedQuestion;
+            questionText.text = questionTextVal;
         }
     }
 
@@ -155,31 +154,37 @@ public class GameplayManager : MonoBehaviour
         TMP_Text btnText = revealButton.GetComponentInChildren<TMP_Text>();
         QuestionData q = currentDeck[currentIndex];
         string mode = q.gameType.ToLower();
+        var loc = LocalizationManager.Instance;
+        string lang = loc.currentLang;
 
-        if (mode.Contains("culture"))
+        if (mode.Contains("culture") || mode.Contains("game_qui") || mode.Contains("mytho"))
         {
-            if (btnText.text == "Voir la réponse")
+            string voirReponseTxt = loc.GetText(mode.Contains("culture") ? "txt_voirreponse" : "txt_afficherreponse");
+
+            if (btnText.text == voirReponseTxt)
             {
-                questionText.text = "<color=#780000>RÉPONSE :</color>\n\n" + CleanText(q.option1);
-                btnText.text = "Voir la question";
+                questionText.text = mode.Contains("culture") ? "<color=#780000>RÉPONSE :</color>\n\n" + currentHiddenInfo : currentHiddenInfo;
+                btnText.text = loc.GetText("txt_voirquestion");
             }
             else
             {
-                questionText.text = CleanText(q.text);
-                btnText.text = "Voir la réponse";
-            }
-        }
-        else if (mode.Contains("mytho"))
-        {
-            if (btnText.text == "Afficher la réponse")
-            {
-                questionText.text = currentHiddenInfo;
-                btnText.text = "Voir la question";
-            }
-            else
-            {
-                questionText.text = CleanText(q.text);
-                btnText.text = "Afficher la réponse";
+                // RE-FORMATAGE lors du retour à la question pour "Qui est qui"
+                if (mode.Contains("game_qui"))
+                {
+                    string[] options = q.GetText(lang).Split('|');
+                    string formatted = "<align=left>";
+                    foreach (string opt in options)
+                    {
+                        if (!string.IsNullOrWhiteSpace(opt))
+                            formatted += "• " + opt.Trim() + "\n";
+                    }
+                    questionText.text = formatted + "</align>";
+                }
+                else
+                {
+                    questionText.text = q.GetText(lang);
+                }
+                btnText.text = voirReponseTxt;
             }
         }
         else if (mode.Contains("bac"))
@@ -187,56 +192,47 @@ public class GameplayManager : MonoBehaviour
             currentHiddenInfo = GetRandomLetter();
             extraInfoText.gameObject.SetActive(true);
             extraInfoText.text = "<size=150%>" + currentHiddenInfo + "</size>";
-            btnText.text = "Nouvelle lettre";
+            btnText.text = loc.GetText("txt_nouvellelettre");
         }
     }
 
     private void UpdateDifficultyIcon(string difficulty)
     {
         if (difficultyIconImage == null) return;
-        DifficultyIcon iconData = difficultyIcons.Find(x => x.difficultyName.Trim().ToLower() == difficulty.Trim().ToLower());
-
-        if (iconData != null && iconData.iconSprite != null)
-        {
-            difficultyIconImage.sprite = iconData.iconSprite;
-            difficultyIconImage.gameObject.SetActive(true);
-        }
-        else if (defaultIcon != null)
-        {
-            difficultyIconImage.sprite = defaultIcon;
-            difficultyIconImage.gameObject.SetActive(true);
-        }
-        else difficultyIconImage.gameObject.SetActive(false);
+        DifficultyIcon icon = difficultyIcons.Find(x => x.difficultyName.ToLower() == difficulty.ToLower());
+        difficultyIconImage.sprite = (icon != null) ? icon.iconSprite : defaultIcon;
     }
 
     private void UpdatePlayerTurn(string mode, QuestionData q)
     {
+        var loc = LocalizationManager.Instance;
+        string lang = loc.currentLang;
+
         if (mode.Contains("événement") || mode.Contains("évènement"))
         {
-            playerText.text = "<color=#780000>" + CleanText(q.option1) + "</color>";
+            playerText.text = "<color=#780000>" + q.GetAnswer(lang) + "</color>";
             playerText.gameObject.SetActive(true);
         }
-        else if (mode.Contains("interrogatoire") || mode.Contains("culture") || mode.Contains("mytho"))
+        else if (mode.Contains("interrogatoire") || mode.Contains("culture") || mode.Contains("mytho") || mode.Contains("game_qui"))
         {
             string p = (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
                 ? GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)]
                 : "Tout le monde";
 
-            playerText.text = "C'est au tour de : <color=#780000>" + p + "</color>";
-            playerText.gameObject.SetActive(true);
-        }
-        else if (mode.Contains("qui est qui"))
-        {
-            string p = (GameManager.Instance.playerNames != null && GameManager.Instance.playerNames.Count > 0)
-                ? GameManager.Instance.playerNames[Random.Range(0, GameManager.Instance.playerNames.Count)]
-                : "Tout le monde";
-
-            playerText.text = "À qui ressemble : \n<color=#780000>" + p + "</color>";
+            string prefix = mode.Contains("game_qui") ? loc.GetText("txt_aquiressemble") : loc.GetText("txt_autourde");
+            playerText.text = $"{prefix} {(mode.Contains("game_qui") ? ": \n" : ": ")}<color=#780000>{p}</color>";
             playerText.gameObject.SetActive(true);
         }
         else playerText.gameObject.SetActive(false);
     }
 
-    private string CleanText(string input) => string.IsNullOrEmpty(input) ? "" : input.Replace("\"\"", "\"");
     private string GetRandomLetter() { return "ABCDEFGHIJKLMNOPRST"[Random.Range(0, 19)].ToString(); }
+
+    public void RefreshPenaltiesVisibility()
+    {
+        if (PenaltiesDisplay != null && SettingsManager.Instance != null)
+        {
+            PenaltiesDisplay.gameObject.SetActive(SettingsManager.Instance.showPenalties);
+        }
+    }
 }

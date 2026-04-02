@@ -49,7 +49,7 @@ public class GameMenuManager : MonoBehaviour
     {
         if (isAnimating) StopAllCoroutines();
         isAnimating = true;
-        
+
         container.DOKill();
         foreach (Transform child in container) Destroy(child.gameObject);
 
@@ -62,7 +62,7 @@ public class GameMenuManager : MonoBehaviour
 
         foreach (var config in GoogleSheetLoader.Instance.sheetConfigs)
         {
-            if (config.isInterfaceSheet) continue; // On n'affiche pas le sheet de l'UI en tant que jeu
+            if (config.isInterfaceSheet) continue;
 
             string gameKey = config.gameKey;
             if (!GoogleSheetLoader.Instance.gameDatabase.ContainsKey(gameKey)) continue;
@@ -92,7 +92,7 @@ public class GameMenuManager : MonoBehaviour
         if (desc != null)
         {
             if (GoogleSheetLoader.Instance.gameDescriptions.ContainsKey(gameKey))
-                desc.text = GoogleSheetLoader.Instance.gameDescriptions[gameKey];
+                desc.text = LocalizationManager.Instance.GetText("desc_" + config.gameKey);
             else
                 desc.text = "Lance une partie !";
         }

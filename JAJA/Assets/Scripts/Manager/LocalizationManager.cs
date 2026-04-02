@@ -7,38 +7,79 @@ public class LocalizationManager : MonoBehaviour
 
     [Header("Configuration")]
     public string currentLang = "FR";
+    public event System.Action OnLanguageRefreshed;
 
-    private Dictionary<string, string> uiTexts = new Dictionary<string, string>();
+    // Dictionnaire pour l'interface : Dictionary<Langue, Dictionary<Clé, Texte>>
+    private Dictionary<string, Dictionary<string, string>> allTranslations
+        = new Dictionary<string, Dictionary<string, string>>();
+
+    // Cache des composants LocalizedText pour éviter FindObjectsOfType à répétition
+    private LocalizedText[] _cachedLocalizedTexts;
+    private bool _cacheStale = true;
 
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
         else { Destroy(gameObject); return; }
 
-        currentLang = PlayerPrefs.GetString("Language", Application.systemLanguage == SystemLanguage.French ? "FR" : "EN");
+        if (PlayerPrefs.HasKey("Language"))
+            currentLang = PlayerPrefs.GetString("Language");
     }
 
     public void SetLanguage(string lang)
     {
-        currentLang = lang;
-        PlayerPrefs.SetString("Language", lang);
+        currentLang = lang.ToUpper();
+        PlayerPrefs.SetString("Language", currentLang);
+        PlayerPrefs.Save();
+
+        RefreshAllTexts();
+
+        if (GameplayManager.Instance != null)
+            GameplayManager.Instance.RefreshCurrentQuestion();
     }
 
-    public void LoadInterfaceTexts(Dictionary<string, string> texts)
+    public void LoadAllInterfaceTexts(Dictionary<string, Dictionary<string, string>> data)
     {
-        uiTexts = texts;
+        allTranslations = data;
+        _cacheStale = true;  // Invalider le cache des composants
+        RefreshAllTexts();
     }
 
     public string GetText(string key)
     {
         if (string.IsNullOrEmpty(key)) return "";
-        if (uiTexts.ContainsKey(key)) return uiTexts[key];
-        return key; // Retourne la clé par défaut si non trouvée
+
+        if (allTranslations.TryGetValue(currentLang, out var langDict) && langDict.TryGetValue(key, out var text))
+            return text;
+
+        return key;
     }
+
+    /// <summary>
+    /// Expose les traductions brutes pour la sauvegarde dans le cache local.
+    /// </summary>
+    public Dictionary<string, Dictionary<string, string>> GetAllTranslations()
+        => allTranslations;
 
     public void RefreshAllTexts()
     {
-        LocalizedText[] allTexts = FindObjectsOfType<LocalizedText>(true);
-        foreach (var t in allTexts) t.UpdateText();
+        // Invalider le cache si les objets de la scène ont changé
+        if (_cacheStale)
+        {
+            _cachedLocalizedTexts = FindObjectsOfType<LocalizedText>(true);
+            _cacheStale = false;
+        }
+
+        foreach (var t in _cachedLocalizedTexts)
+        {
+            if (t != null) t.UpdateText();
+        }
+        OnLanguageRefreshed?.Invoke();
     }
+
+    /// <summary>
+    /// Appeler depuis un LocalizedText quand il est détruit (OnDestroy)
+    /// pour invalider le cache automatiquement.
+    /// </summary>
+    public void InvalidateTextCache() => _cacheStale = true;
 }

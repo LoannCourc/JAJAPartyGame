@@ -12,8 +12,8 @@ public class PremiumManager : MonoBehaviour
     public TMP_Text buttonText;
 
     [Header("Effets Visuels")]
-    public ParticleSystem fireworksLeft;  
-    public ParticleSystem fireworksRight; 
+    public ParticleSystem fireworksLeft;
+    public ParticleSystem fireworksRight;
     [Tooltip("Délai entre les 3 explosions de particules")]
     public float burstDelay = 0.3f;
 
@@ -38,6 +38,8 @@ public class PremiumManager : MonoBehaviour
     void Start()
     {
         UpdateUIStatus();
+        if (LocalizationManager.Instance != null)
+            LocalizationManager.Instance.OnLanguageRefreshed += UpdateUIStatus;
     }
 
     private void InitializePremiumStatus()
@@ -55,7 +57,13 @@ public class PremiumManager : MonoBehaviour
         if (IsUserPremium)
         {
             if (buyPremiumButton != null) buyPremiumButton.interactable = false;
-            if (buttonText != null) buttonText.text = "Mode Premium débloqué !";
+            if (buttonText != null)
+                buttonText.text = LocalizationManager.Instance.GetText("txt_premiumestdebloque");
+        }
+        else
+        {
+            if (buttonText != null)
+                buttonText.text = LocalizationManager.Instance.GetText("txt_debloquerpremium");
         }
     }
 
@@ -95,9 +103,14 @@ public class PremiumManager : MonoBehaviour
     {
         PlayerPrefs.DeleteKey("IsPremium");
         IsUserPremium = false;
-        
+
         // Optionnel : remettre le bouton en état cliquable
         if (buyPremiumButton != null) buyPremiumButton.interactable = true;
-        if (buttonText != null) buttonText.text = "Acheter le Premium"; 
+        if (buttonText != null) buttonText.text = LocalizationManager.Instance.GetText("txt_debloquerpremium");
+    }
+    void OnDestroy()
+    {
+        if (LocalizationManager.Instance != null)
+            LocalizationManager.Instance.OnLanguageRefreshed -= UpdateUIStatus;
     }
 }

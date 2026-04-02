@@ -1,29 +1,29 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMP_InputField = TMPro.TMP_InputField; 
+using TMP_InputField = TMPro.TMP_InputField;
 using TMP_Text = TMPro.TMP_Text;
-using DG.Tweening; 
+using DG.Tweening;
 using System.Collections.Generic;
 
 public class PlayerListManager : MonoBehaviour
 {
     [Header("Saisie Fixe")]
-    public TMP_InputField mainInputField; 
-    public Button addBtn; 
+    public TMP_InputField mainInputField;
+    public Button addBtn;
 
     [Header("Liste Dynamique")]
-    public GameObject playerRowPrefab; 
-    public Transform container; 
+    public GameObject playerRowPrefab;
+    public Transform container;
     public Button nextButton;
     // Référence au texte du bouton pour afficher "Chargement..."
-    public TMP_Text nextButtonText; 
+    public TMP_Text nextButtonText;
 
     public GameMenuManager gameMenuManager;
 
     private List<string> playerNames = new List<string>();
     private Dictionary<string, GameObject> activeRows = new Dictionary<string, GameObject>();
     private const int MAX_PLAYERS = 10;
-    
+
     // Pour mémoriser le texte original du bouton (ex: "SUIVANT" ou "JOUER")
     private string originalButtonText;
 
@@ -74,10 +74,10 @@ public class PlayerListManager : MonoBehaviour
         if (playerNames.Count >= MAX_PLAYERS) return;
 
         AddPlayerVisually(nameToAdd);
-        GameManager.Instance.AddPlayer(nameToAdd); 
+        GameManager.Instance.AddPlayer(nameToAdd);
 
-        mainInputField.text = ""; 
-        mainInputField.ActivateInputField(); 
+        mainInputField.text = "";
+        mainInputField.ActivateInputField();
     }
 
     public void AddPlayerFromInput(string val) => AddPlayerFromInput();
@@ -89,7 +89,7 @@ public class PlayerListManager : MonoBehaviour
         GameObject newRow = Instantiate(playerRowPrefab, container);
         activeRows.Add(name, newRow);
 
-        newRow.transform.localScale = Vector3.zero; 
+        newRow.transform.localScale = Vector3.zero;
         newRow.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
 
         newRow.GetComponentInChildren<TMP_Text>().text = name;
@@ -126,29 +126,36 @@ public class PlayerListManager : MonoBehaviour
     private void RefreshUI()
     {
         // CONDITIONS POUR ACTIVER LE BOUTON :
-        // 1. Il faut au moins 2 joueurs
         bool hasEnoughPlayers = (playerNames.Count >= 2);
-        
-        // 2. Il faut que les données Google Sheets soient chargées (si le loader existe)
         bool isDataLoaded = GoogleSheetLoader.Instance != null && GoogleSheetLoader.Instance.isDataLoaded;
 
         if (!isDataLoaded)
         {
-            // Cas : Chargement en cours ou pas internet
             nextButton.interactable = false;
-            if (nextButtonText != null) nextButtonText.text = "Chargement...";
+            if (nextButtonText != null)
+            {
+                // On récupère la traduction de "key_chargement"
+                // Si le dictionnaire n'est pas encore prêt, GetText renverra "key_chargement"
+                // ce qui est toujours mieux qu'un texte en dur en français.
+                nextButtonText.text = LocalizationManager.Instance.GetText("Loading");
+            }
         }
         else if (!hasEnoughPlayers)
         {
-            // Cas : Pas assez de joueurs
             nextButton.interactable = false;
-            if (nextButtonText != null) nextButtonText.text = originalButtonText; // Remet le texte normal
         }
         else
         {
-            // Cas : Tout est bon !
-            nextButton.interactable = true;
-            if (nextButtonText != null) nextButtonText.text = originalButtonText;
+            // Une fois chargé, on rend le bouton interactable selon le nombre de joueurs
+            nextButton.interactable = hasEnoughPlayers;
+
+            if (nextButtonText != null)
+            {
+                // On utilise la traduction de la clé originale (ex: btn_next) 
+                // plutôt que la variable "originalButtonText" qui a été capturée au Start 
+                // et qui pourrait ne pas être à jour.
+                nextButtonText.text = LocalizationManager.Instance.GetText("btn_suivant");
+            }
         }
     }
 

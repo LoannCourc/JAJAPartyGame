@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SettingsManager : MonoBehaviour
 {
     public static SettingsManager Instance;
-
+    public TMP_Dropdown dropdownLanguage;
     [Header("États des Options")]
-    public bool showPenalties; 
+    public bool showPenalties;
     public bool onlyCustomQuestions;
     public bool vibrationsEnabled;
 
@@ -34,7 +35,20 @@ public class SettingsManager : MonoBehaviour
 
         LoadSettings();
     }
+    void Start()
+    {
+        string savedLang = LocalizationManager.Instance.currentLang;
+        dropdownLanguage.value = (savedLang == "EN") ? 1 : 0;
 
+        dropdownLanguage.onValueChanged.AddListener(OnLanguageChanged);
+
+        if (penaltyToggle != null)
+            penaltyToggle.onValueChanged.AddListener(TogglePenalties);
+        if (customToggle != null)
+            customToggle.onValueChanged.AddListener(ToggleCustom);
+        if (vibroToggle != null)
+            vibroToggle.onValueChanged.AddListener(ToggleVibro);
+    }
     public void OpenInstagram()
     {
         if (!string.IsNullOrEmpty(instagramURL))
@@ -82,7 +96,16 @@ public class SettingsManager : MonoBehaviour
     }
 
     // --- FONCTIONS POUR LES BOUTONS ---
-    public void TogglePenalties(bool value) { showPenalties = value; SaveSettings(); }
+    public void TogglePenalties(bool value)
+    {
+        showPenalties = value;
+        SaveSettings();
+
+        if (GameplayManager.Instance != null)
+        {
+            GameplayManager.Instance.RefreshPenaltiesVisibility();
+        }
+    }
     public void ToggleCustom(bool value) { onlyCustomQuestions = value; SaveSettings(); }
     public void ToggleVibro(bool value) { vibrationsEnabled = value; SaveSettings(); }
 
@@ -104,9 +127,14 @@ public class SettingsManager : MonoBehaviour
     {
         if (vibrationsEnabled)
         {
-            #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
             Handheld.Vibrate();
-            #endif
+#endif
         }
+    }
+    public void OnLanguageChanged(int index)
+    {
+        string lang = (index == 0) ? "FR" : "EN";
+        LocalizationManager.Instance.SetLanguage(lang);
     }
 }

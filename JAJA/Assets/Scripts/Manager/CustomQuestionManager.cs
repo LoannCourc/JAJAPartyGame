@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -36,6 +37,15 @@ public class CustomQuestionManager : MonoBehaviour
     public GameObject questionPrefab;
     public Transform listContent;
 
+    // --- LISTE DES JEUX (game_mixed en premier pour être par défaut) ---
+    private List<string> gameKeys = new List<string> { 
+        "game_mixed", "game_dilemme", "game_culture", "game_mytho", 
+        "game_enchere", "game_bac", "game_meilleur", "game_capable", 
+        "game_dejafait", "game_interrogatoire", "game_qui" 
+    };
+
+    private List<string> currentDiffKeys = new List<string>();
+
     [System.Serializable]
     public class CustomQuestion
     {
@@ -46,55 +56,111 @@ public class CustomQuestionManager : MonoBehaviour
     }
 
     [System.Serializable]
-    public class CustomQuestionList
-    {
-        public List<CustomQuestion> questions = new List<CustomQuestion>();
-    }
+    public class CustomQuestionList { public List<CustomQuestion> questions = new List<CustomQuestion>(); }
 
     private CustomQuestionList customData = new CustomQuestionList();
     private string filePath;
+    private bool isInitialized = false;
 
     void Start()
     {
         filePath = Path.Combine(Application.persistentDataPath, "custom_questions.json");
         if (feedbackText != null) feedbackText.gameObject.SetActive(false);
-        gameTypeDropdown.onValueChanged.AddListener(delegate { UpdateUIForGameMode(); });
+        
+        // Sécurité : on attend que les traductions soient prêtes
+        StartCoroutine(InitWhenDataReady());
+    }
+
+    private IEnumerator InitWhenDataReady()
+    {
+        // Attente que le loader ait fini ET que le dictionnaire soit peuplé
+        while (GoogleSheetLoader.Instance == null || !GoogleSheetLoader.Instance.isDataLoaded || 
+               LocalizationManager.Instance.GetText("game_mixed") == "game_mixed")
+        {
+            yield return new WaitForSeconds(0.1f); 
+        }
+
         LoadQuestions();
+        SetupGameTypeDropdown();
+        UpdatePenaltyDisplay(1);
+        gameTypeDropdown.onValueChanged.AddListener(delegate { UpdateUIForGameMode(); });
+        
+        isInitialized = true;
+    }
+
+    private void SetupGameTypeDropdown()
+    {
+        gameTypeDropdown.ClearOptions();
+        List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
+
+        for (int i = 0; i < gameKeys.Count; i++)
+        {
+            string translatedName = LocalizationManager.Instance.GetText(gameKeys[i]);
+            options.Add(new TMP_Dropdown.OptionData(translatedName));
+        }
+
+        gameTypeDropdown.AddOptions(options);
+
+        // Sélection par défaut sur game_mixed (index 0)
+        gameTypeDropdown.value = 0;
+        gameTypeDropdown.RefreshShownValue();
+        
         UpdateUIForGameMode();
     }
 
     public void UpdateUIForGameMode()
     {
-        string selected = gameTypeDropdown.options[gameTypeDropdown.value].text;
-        if (string.IsNullOrEmpty(selected) || selected.Contains("Choisir")) { mainFieldsContainer.SetActive(false); return; }
+        if (gameTypeDropdown.options.Count == 0) return;
+
+        string selectedKey = gameKeys[gameTypeDropdown.value];
         
         mainFieldsContainer.SetActive(true);
-        groupSimple.SetActive(false); groupWithAnswer.SetActive(false);
-        groupTwoOptions.SetActive(false); groupFourOptions.SetActive(false);
+        groupSimple.SetActive(false); 
+        groupWithAnswer.SetActive(false);
+        groupTwoOptions.SetActive(false); 
+        groupFourOptions.SetActive(false);
 
-        string mode = selected.ToLower();
-        if (mode.Contains("dilemme")) groupTwoOptions.SetActive(true);
-        else if (mode.Contains("qui est qui")) groupFourOptions.SetActive(true);
-        else if (mode.Contains("culture") || mode.Contains("mytho")) groupWithAnswer.SetActive(true);
-        else groupSimple.SetActive(true);
+        // Logique de détection des groupes de champs selon la clé
+        if (selectedKey == "game_dilemme") 
+        {
+            groupTwoOptions.SetActive(true);
+        }
+        else if (selectedKey == "game_qui") 
+        {
+            groupFourOptions.SetActive(true);
+        }
+        else if (selectedKey == "game_culture" || selectedKey == "game_mytho") 
+        {
+            groupWithAnswer.SetActive(true);
+        }
+        else 
+        {
+            groupSimple.SetActive(true);
+        }
 
-        UpdateDifficultyOptions(selected);
+        UpdateDifficultyOptions(selectedKey);
     }
 
-    private void UpdateDifficultyOptions(string gameName)
+    private void UpdateDifficultyOptions(string gameKey)
     {
         if (difficultyDropdown == null) return;
         difficultyDropdown.ClearOptions();
-        List<string> options = new List<string>();
-        string lowerName = gameName.ToLower().Trim();
+        currentDiffKeys.Clear();
+        
         bool isUnique = false;
 
-        if (lowerName.Contains("culture") || lowerName.Contains("enchères"))
-            options.AddRange(new[] { "Facile", "Moyen", "Difficile" });
-        else if (lowerName.Contains("qui est qui") || lowerName.Contains("mytho"))
-            { options.Add("Unique"); isUnique = true; }
+        if (gameKey == "game_culture" || gameKey == "game_enchere")
+            currentDiffKeys.AddRange(new[] { "diff_facile", "diff_moyen", "diff_difficile" }); 
+        else if (gameKey == "game_qui" || gameKey == "game_mytho")
+            { currentDiffKeys.Add("diff_unique"); isUnique = true; }
         else
-            options.AddRange(new[] { "Facile", "Difficile", "Hot" });
+            currentDiffKeys.AddRange(new[] { "diff_facile", "diff_difficile", "diff_hot" });
+
+        List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
+        foreach(string dk in currentDiffKeys) 
+        {
+            options.Add(new TMP_Dropdown.OptionData(LocalizationManager.Instance.GetText(dk)));
+        }
 
         difficultyDropdown.AddOptions(options);
         difficultyDropdown.value = 0; 
@@ -105,30 +171,43 @@ public class CustomQuestionManager : MonoBehaviour
 
     public void SaveNewQuestion()
     {
+        var loc = LocalizationManager.Instance;
         Color myCustomColor;
         ColorUtility.TryParseHtmlString("#FDF0D5", out myCustomColor);
         
         if (PremiumManager.Instance != null && !PremiumManager.Instance.IsUserPremium && customData.questions.Count >= PremiumManager.Instance.maxFreeCustomQuestions)
-        { ShowPopFeedback("Limite atteinte", Color.red); return; }
+        { 
+            ShowPopFeedback(loc.GetText("txt_limite"), Color.red); 
+            return; 
+        }
 
-        if (IsInputEmpty()) { ShowPopFeedback("à ajouter", myCustomColor); return; }
+        if (IsInputEmpty()) { ShowPopFeedback(loc.GetText("txt_ajouter"), myCustomColor); return; }
+
+        string selectedGameKey = gameKeys[gameTypeDropdown.value];
+        string selectedDiffKey = currentDiffKeys[difficultyDropdown.value];
 
         CustomQuestion newQ = new CustomQuestion {
-            gameType = gameTypeDropdown.options[gameTypeDropdown.value].text,
-            difficulty = difficultyDropdown.options[difficultyDropdown.value].text,
+            gameType = selectedGameKey,
+            difficulty = selectedDiffKey,
             penalties = (int)penaltySlider.value
         };
 
-        if (groupTwoOptions.activeSelf) newQ.text = $"{inputPrefer1.text} | {inputPrefer2.text}";
-        else if (groupFourOptions.activeSelf) newQ.text = $"{inputWho1.text} | {inputWho2.text} | {inputWho3.text} | {inputWho4.text}";
-        else if (groupWithAnswer.activeSelf) { newQ.text = inputQuestionText.text; } // Note: option1 non stocké ici dans ton original
-        else newQ.text = inputSimpleText.text;
+        // Formatage avec le séparateur "|"
+        if (groupTwoOptions.activeSelf) 
+            newQ.text = $"{inputPrefer1.text} | {inputPrefer2.text}";
+        else if (groupFourOptions.activeSelf) 
+            newQ.text = $"{inputWho1.text} | {inputWho2.text} | {inputWho3.text} | {inputWho4.text}";
+        else if (groupWithAnswer.activeSelf) 
+            newQ.text = $"{inputQuestionText.text} | {inputHiddenAnswer.text}"; 
+        else 
+            newQ.text = inputSimpleText.text;
 
-        newQ.difficulty += " (custom)";
         customData.questions.Add(newQ);
         SaveToFile();
+        
         if(GoogleSheetLoader.Instance != null) GoogleSheetLoader.Instance.LoadLocalCustomQuestions();
-        ShowPopFeedback("ajoutée !", myCustomColor);
+
+        ShowPopFeedback(loc.GetText("txt_ajouter"), myCustomColor);
         ClearAllFields();
         RefreshListView();
     }
@@ -145,7 +224,7 @@ public class CustomQuestionManager : MonoBehaviour
     public void UpdatePenaltyDisplay(float value)
     {
         int p = Mathf.RoundToInt(value);
-        penaltyValueText.text =  "Malus : " + p;
+        penaltyValueText.text = LocalizationManager.Instance.GetText("txt_numbermalus") + " : " + p;
         penaltyValueText.transform.DOKill();
         penaltyValueText.transform.localScale = Vector3.one; 
         penaltyValueText.transform.DOPunchScale(new Vector3(0.1f, 0.1f, 0), 0.15f, 10, 1);
@@ -165,9 +244,21 @@ public class CustomQuestionManager : MonoBehaviour
         });
     }
 
-    private void ClearAllFields() { /* ... tes inputs.text = "" ... */ }
+    private void ClearAllFields() 
+    {
+        inputSimpleText.text = ""; inputQuestionText.text = ""; inputHiddenAnswer.text = "";
+        inputPrefer1.text = ""; inputPrefer2.text = "";
+        inputWho1.text = ""; inputWho2.text = ""; inputWho3.text = ""; inputWho4.text = "";
+    }
+
     private void SaveToFile() => File.WriteAllText(filePath, JsonUtility.ToJson(customData, true));
-    private void LoadQuestions() { if (File.Exists(filePath)) customData = JsonUtility.FromJson<CustomQuestionList>(File.ReadAllText(filePath)); RefreshListView(); }
+    
+    private void LoadQuestions() 
+    { 
+        if (File.Exists(filePath)) 
+            customData = JsonUtility.FromJson<CustomQuestionList>(File.ReadAllText(filePath)); 
+        RefreshListView(); 
+    }
     
     public void RefreshListView()
     {
@@ -178,8 +269,15 @@ public class CustomQuestionManager : MonoBehaviour
             TMP_Text[] texts = item.GetComponentsInChildren<TMP_Text>();
             foreach (var t in texts)
             {
-                if (t.name == "QuestionText" || t.name.Contains("Content")) t.text = q.text.Replace("|", " / ");
-                if (t.name == "GameTypeText" || t.name.Contains("Label")) t.text = $"{q.gameType} - {q.difficulty.Replace(" (custom)", "")}";
+                if (t.name == "QuestionText" || t.name.Contains("Content")) 
+                    t.text = q.text.Replace("|", " / ");
+
+                if (t.name == "GameTypeText" || t.name.Contains("Label")) 
+                {
+                    string tGame = LocalizationManager.Instance.GetText(q.gameType);
+                    string tDiff = LocalizationManager.Instance.GetText(q.difficulty);
+                    t.text = $"{tGame} - {tDiff}";
+                }
             }
             item.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveQuestion(q));
         }
